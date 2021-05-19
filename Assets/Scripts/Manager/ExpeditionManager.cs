@@ -78,7 +78,7 @@ public class ExpeditionManager : MonoBehaviour
     public void ExpeditionReturn(Expedition ex)
     {
         Debug.Log("Expedition returned : " + ex);
-        Inventory.instance.AddItems(ex.items);
+        LootPanel.instance.ShowLoot(ex.items, "l'expedition \"" + ex.name + "\" est de retour !");
     }
 
     public int ComputeCost(int time, Location location)

@@ -2,3 +2,4 @@ UI : https://opengameart.org/content/mini-pack-money
 office : https://opengameart.org/content/office-furniture-64-x-128-isometric
 caravan : https://opengameart.org/content/gnomish-caravan
 gear : https://opengameart.org/content/gear-pixel-art-32x32
+items : https://opengameart.org/content/roguelikerpg-items
