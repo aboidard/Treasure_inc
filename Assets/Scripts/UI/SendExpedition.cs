@@ -7,6 +7,7 @@ public class SendExpedition : MonoBehaviour
 {
     public Location location;
     public Text locationText;
+    public Image locationImage;
     public Text costText;
     public int time = 10;
     public Slider timeSlider;
@@ -22,6 +23,7 @@ public class SendExpedition : MonoBehaviour
     public void UpdateUI()
     {
         locationText.text = location.name;
+        locationImage.sprite = location.graphics;
         costText.text = "- " + ExpeditionManager.instance.ComputeCost(time, location);
         timeSlider.value = time;
         timeText.text = timeSlider.value.ToString();
@@ -63,6 +65,7 @@ public class SendExpedition : MonoBehaviour
 
     public void OpenPanel()
     {
+        sendPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
         sendPanel.SetActive(true);
     }
 

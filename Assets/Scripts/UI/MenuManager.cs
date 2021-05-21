@@ -14,8 +14,16 @@ public class MenuManager : MonoBehaviour
         instance = this;
     }
 
+    private void Start()
+    {
+        ClosePanel();    
+    }
     public void OnClickAction()
     {
         actionPanel.SetActive(!actionPanel.activeInHierarchy);
     } 
+    public void ClosePanel()
+    {
+        this.actionPanel.SetActive(false);
+    }
 }

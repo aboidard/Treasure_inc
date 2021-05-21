@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {    
     public static GameManager instance;
+    public Text DebugInfo;
 
     void Awake()
     {
@@ -15,8 +17,11 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
-    public void Update()
+    public void FixedUpdate()
     {
+        DebugInfo.text = "Time.fixedDeltaTime : " + Time.fixedDeltaTime;
+        DebugInfo.text += "\nTime.deltaTime : " + Time.deltaTime;
+        DebugInfo.text += "\nfps : " + (1f / Time.unscaledDeltaTime);
         Inputs();
     }
 

@@ -19,6 +19,7 @@ public class MessageManager : MonoBehaviour
     
     public void DisplayMessage(string title, string text)
     {
+        this.messagePanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
         this.messagePanel.SetActive(true);
         this.messageTitle.text = title;
         this.messageText.text = text;

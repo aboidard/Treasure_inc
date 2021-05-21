@@ -26,7 +26,7 @@ public class LootPanel : MonoBehaviour
     public void ShowLoot(List<Item> items, string title)
     {
         this.items = items;
-        lootPanel.SetActive(true);
+        OpenPanel();
         lootTitle.text = title;
 
         //init
@@ -62,6 +62,8 @@ public class LootPanel : MonoBehaviour
     }
     public void OpenPanel()
     {
+        
+        lootPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
         lootPanel.SetActive(true);
     }
 

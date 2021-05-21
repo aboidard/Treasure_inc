@@ -35,6 +35,8 @@ public class ItemInfoPanel : MonoBehaviour
 
     public void OpenPanel()
     {
+        
+        itemInfoPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
         itemInfoPanel.SetActive(true);
     }
 
