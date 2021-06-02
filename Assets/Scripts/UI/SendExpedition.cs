@@ -5,6 +5,7 @@ using System;
 
 public class SendExpedition : MonoBehaviour
 {
+    public static SendExpedition instance;
     public Location location;
     public Text locationText;
     public Image locationImage;
@@ -13,7 +14,19 @@ public class SendExpedition : MonoBehaviour
     public Slider timeSlider;
     public Text timeText;
     public GameObject sendPanel;
+    public GameObject locationGridPanel;
+    public GameObject locationGridButtonPrefab;
+    public LocationGridButton locationButtonSelected;
+    public bool isDiging;
 
+    void Awake()
+    {
+        if(instance != null){
+            Debug.LogWarning("plus d'une instance de SendExpedition dans la scène");
+            return;
+        }
+        instance = this;
+    }
     private void Start() 
     {
         UpdateUI();
@@ -26,7 +39,7 @@ public class SendExpedition : MonoBehaviour
         locationImage.sprite = location.graphics;
         costText.text = "- " + ExpeditionManager.instance.ComputeCost(time, location);
         timeSlider.value = time;
-        timeText.text = timeSlider.value.ToString();
+        timeText.text = timeSlider.value.ToString() + " mois";
     }
 
     public void OnClickNextLocation()
@@ -37,6 +50,8 @@ public class SendExpedition : MonoBehaviour
             NextLocationId = 1;
         }
         location = LocationsDatabase.instance.allLocations.Single(x=> x.id == NextLocationId);
+        
+        CreateGridLocation();
         UpdateUI();
     }
     public void OnClickPreviousLocation()
@@ -47,6 +62,8 @@ public class SendExpedition : MonoBehaviour
             previousLocationId = LocationsDatabase.instance.allLocations.Count();
         }
         location = LocationsDatabase.instance.allLocations.Single(x=> x.id == previousLocationId);
+        
+        CreateGridLocation();
         UpdateUI();
     }
 
@@ -58,15 +75,52 @@ public class SendExpedition : MonoBehaviour
 
     public void OnClickSend()
     {
+        if(locationButtonSelected != null)
+        {
+            Debug.Log("location button Event : " + locationButtonSelected.locationEvent[0]);
+        }
         Expedition expedition = ExpeditionManager.instance.SendExpedition(location, time);
         MessageManager.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
+        DestroyGridLocation();
         ClosePanel();
+    }
+
+    private void DestroyGridLocation()
+    {
+        for(int i = 0; i < locationGridPanel.transform.childCount; i++)
+        {
+            Destroy(locationGridPanel.transform.GetChild(i).gameObject);
+        }
+    }
+    public void CreateGridLocation()
+    {
+        DestroyGridLocation();
+        for (var i = 0; i < 18; i++)
+        {
+            GameObject button = Instantiate(locationGridButtonPrefab, locationGridPanel.transform);
+            LocationGridButton buttonScript = button.GetComponent<LocationGridButton>();
+
+            button.GetComponent<Button>().onClick.AddListener(delegate{buttonScript.ClickLocation();});
+        }
+        HideLocationButtons();
+    }
+
+    public void HideLocationButtons()
+    {   
+        for (int i = 0; i < locationGridPanel.transform.childCount; i++)
+        { 
+            var image = locationGridPanel.transform.GetChild(i).gameObject.GetComponent<Image>();
+            var tempColor = image.color;
+            tempColor.a = 0f;
+            image.color = tempColor;
+        } 
     }
 
     public void OpenPanel()
     {
         sendPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
         sendPanel.SetActive(true);
+        CreateGridLocation();
     }
 
     public void ClosePanel()

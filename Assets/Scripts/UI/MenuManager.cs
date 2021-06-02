@@ -22,6 +22,21 @@ public class MenuManager : MonoBehaviour
     {
         actionPanel.SetActive(!actionPanel.activeInHierarchy);
     } 
+    public void OnClickInventory()
+    {
+        actionPanel.SetActive(!actionPanel.activeInHierarchy);
+    } 
+    public void OnClickSendExpedition()
+    {
+        SendExpedition.instance.OpenPanel();
+        actionPanel.SetActive(false);
+    }
+    public void OnClickSellAllItems()
+    {
+        Inventory.instance.SellAllItems();
+        actionPanel.SetActive(false);
+    }
+
     public void ClosePanel()
     {
         this.actionPanel.SetActive(false);

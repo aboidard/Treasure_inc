@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
-public class ObjectPanel : MonoBehaviour, IPointerEnterHandler
+public class ObjectPanel : MonoBehaviour
 {
     public Text itemName;
     public Image itemImage;
@@ -32,11 +31,6 @@ public class ObjectPanel : MonoBehaviour, IPointerEnterHandler
         // }
     }
     
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-         Debug.Log("au dessus !" + item );
-    }
-
     public void OnClickInfoButton()
     {
         ItemInfoPanel.instance.ShowItemInfo(item);

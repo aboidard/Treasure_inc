@@ -22,6 +22,11 @@ public class GameManager : MonoBehaviour
         DebugInfo.text = "Time.fixedDeltaTime : " + Time.fixedDeltaTime;
         DebugInfo.text += "\nTime.deltaTime : " + Time.deltaTime;
         DebugInfo.text += "\nfps : " + (1f / Time.unscaledDeltaTime);
+
+        foreach(var expedition in ExpeditionManager.instance.expeditionList)
+        {
+             DebugInfo.text += "\nExpedition Time : " + expedition.TimeElapsed;
+        }
         Inputs();
     }
 

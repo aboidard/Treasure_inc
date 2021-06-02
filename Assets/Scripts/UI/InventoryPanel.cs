@@ -2,14 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LootPanel : MonoBehaviour
+public class InventoryPanel : MonoBehaviour
 {
-    public GameObject lootPanel;    
-    public Text lootTitle;
+    public GameObject inventoryPanel;    
     public Transform listObject;
     public GameObject objectPanelPrefab;
-    public static LootPanel instance;
-    private List<Item> items;
+    public static InventoryPanel instance;
     void Awake()
     {
         if(instance != null){
@@ -23,11 +21,13 @@ public class LootPanel : MonoBehaviour
         ClosePanel();
     }
 
-    public void ShowLoot(List<Item> items, string title)
+    public void ShowInventory()
     {
-        this.items = items;
-        OpenPanel();
-        lootTitle.text = title;
+        if(IsPanelOpen())
+        {
+            ClosePanel();
+            return;
+        }
 
         //init
         for (int i = 0; i < listObject.childCount; i++)
@@ -35,32 +35,34 @@ public class LootPanel : MonoBehaviour
             Destroy(listObject.GetChild(i).gameObject);
         }
 
-        for (int i = 0; i < this.items.Count; i++)
+        for (int i = 0; i < Inventory.instance.Items.Count; i++)
         {
             GameObject panel = Instantiate(objectPanelPrefab, listObject);
             ObjectPanel objectPanel = panel.GetComponent<ObjectPanel>();
-            objectPanel.itemName.text = this.items[i].name;
-            objectPanel.itemImage.sprite = this.items[i].graphics;
-            objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
+            objectPanel.itemName.text = Inventory.instance.Items[i].name;
+            objectPanel.itemImage.sprite = Inventory.instance.Items[i].graphics;
+            objectPanel.itemBorder.color = Item.getRarityColor(Inventory.instance.Items[i].rarity);
 
-            objectPanel.item = this.items[i];
+            objectPanel.item = Inventory.instance.Items[i];
 
             //panel.GetComponents<Button>()[0].onClick.AddListener(delegate{objectPanel.GetItem();});
             //panel.GetComponents<Button>()[1].onClick.AddListener(delegate{objectPanel.SellItem();});
         }
+        
+        OpenPanel();
     }
 
     public void SellAll()
     {
         var cost = 0;
         var nb = 0;
-        for (int i = 0; i < this.items.Count; i++)
+        for (int i = 0; i < Inventory.instance.Items.Count; i++)
         {            
-            Inventory.instance.AddMoney(this.items[i].price);
-            cost += this.items[i].price;
+            Inventory.instance.AddMoney(Inventory.instance.Items[i].price);
+            cost += Inventory.instance.Items[i].price;
             nb ++;
         }
-        this.items.Clear();
+        Inventory.instance.Items.Clear();
         this.ClosePanel();
         if(nb > 0)
         {
@@ -68,22 +70,19 @@ public class LootPanel : MonoBehaviour
         }
     }
 
-    public void TakeAll()
-    {
-        Inventory.instance.AddItems(this.items);
-        this.items.Clear();
-        this.ClosePanel();
-    }
-
     public void OpenPanel()
     {
         
-        lootPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
-        lootPanel.SetActive(true);
+        inventoryPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
+        inventoryPanel.SetActive(true);
     }
 
     public void ClosePanel()
     {
-        lootPanel.SetActive(false);
+        inventoryPanel.SetActive(false);
+    }
+    private bool IsPanelOpen()
+    {
+        return inventoryPanel.activeInHierarchy;
     }
 }

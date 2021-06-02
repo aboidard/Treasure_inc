@@ -24,7 +24,7 @@ public class ExpeditionManager : MonoBehaviour
         expeditionToRemove = new List<Expedition>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         UpdateExpeditions();
     }
@@ -69,8 +69,8 @@ public class ExpeditionManager : MonoBehaviour
         expedition.timeScheduled = time;
         expedition.location = location;
 
-        expeditionList.Add(expedition);
         Inventory.instance.SubtractMoney(cost);
+        expeditionList.Add(expedition);
         Debug.Log("Expedition send" + expedition);
         return expedition;
     }

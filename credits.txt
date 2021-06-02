@@ -3,4 +3,15 @@ office : https://opengameart.org/content/office-furniture-64-x-128-isometric
 caravan : https://opengameart.org/content/gnomish-caravan
 gear : https://opengameart.org/content/gear-pixel-art-32x32
 items : https://opengameart.org/content/roguelikerpg-items
-chest : https://opengameart.org/content/treasure-chest-pixel-art-animation
+chest : https://opengameart.org/content/treasure-chests-32x32-and-16x16
+        https://opengameart.org/content/modified-32x32-treasure-chest
+vehicles : https://opengameart.org/content/16x16-fantasy-pixel-art-vehicles
+crew : https://opengameart.org/content/db16-rpg-character-sprites-v2
+        https://opengameart.org/content/blordrough
+
+old :
+(chest : https://opengameart.org/content/treasure-chest-pixel-art-animation)
+
+have a look : 
+
+https://opengameart.org/content/lpc-wooden-furniture

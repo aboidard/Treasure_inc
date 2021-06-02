@@ -9,3 +9,12 @@ public class Event : ScriptableObject
     public List<Item> lootTable;
     public float proba;
 }
+
+public enum EventLocationType
+{
+    None = 0,
+    UpToOneBonus = 1,
+    UpToTwoBonus = 2,
+    UpToThreeBonus = 3,
+    UpTofourBonus = 4
+}
