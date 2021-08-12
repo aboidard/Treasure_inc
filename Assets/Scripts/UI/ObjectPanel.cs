@@ -30,6 +30,11 @@ public class ObjectPanel : MonoBehaviour
         //     inventory.UpdateTextUI();
         // }
     }
+
+    public void GetUiItem()
+    {
+        
+    }
     
     public void OnClickInfoButton()
     {

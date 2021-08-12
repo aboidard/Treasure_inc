@@ -48,17 +48,17 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     public void ClickLocation()
     {
-        if(SendExpedition.instance.isDiging)
+        if(SendExpeditionPanel.instance.isDiging)
         {
             return;
         }
 
-        if(SendExpedition.instance.locationButtonSelected != null)
+        if(SendExpeditionPanel.instance.locationButtonSelected != null)
         {
-            SendExpedition.instance.locationButtonSelected.border.GetComponent<Image>().color = Color.black;
-            SendExpedition.instance.locationButtonSelected.border.SetActive(false);
+            SendExpeditionPanel.instance.locationButtonSelected.border.GetComponent<Image>().color = Color.black;
+            SendExpeditionPanel.instance.locationButtonSelected.border.SetActive(false);
         }
-        SendExpedition.instance.locationButtonSelected = this;
+        SendExpeditionPanel.instance.locationButtonSelected = this;
         border.GetComponent<Image>().color = Color.red;
         
         if(this.isClicked)
@@ -70,7 +70,7 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         Inventory.instance.SubtractMoney(digCost);
         isClicked = true;
         //SendExpedition.instance.HideLocationButtons();
-        SendExpedition.instance.locationButtonSelected = this;
+        SendExpeditionPanel.instance.locationButtonSelected = this;
         border.GetComponent<Image>().color = Color.red;
         digCostText.SetActive(false);
         //Pickaxe animation        
@@ -80,12 +80,12 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     private IEnumerator Digging()
     {
-        SendExpedition.instance.isDiging = true;
+        SendExpeditionPanel.instance.isDiging = true;
         GameObject Pickaxe = Instantiate(pickaxePrefab, this.transform); 
         Pickaxe.transform.position = this.transform.position + new Vector3(25, 85, 0);
         yield return new WaitForSeconds(digTime);
         Destroy(Pickaxe);
-        SendExpedition.instance.isDiging = false;
+        SendExpeditionPanel.instance.isDiging = false;
         
         //affichage du résultat
         DisplayResultDigging();
@@ -102,7 +102,7 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     public void OnPointerExit(PointerEventData eventData)
     {   
-        if(SendExpedition.instance.locationButtonSelected != this)
+        if(SendExpeditionPanel.instance.locationButtonSelected != this)
         {
             border.SetActive(false);
         }

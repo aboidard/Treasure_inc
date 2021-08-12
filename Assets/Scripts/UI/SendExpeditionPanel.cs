@@ -3,9 +3,9 @@ using UnityEngine.UI;
 using System.Linq;
 using System;
 
-public class SendExpedition : MonoBehaviour
+public class SendExpeditionPanel : MonoBehaviour
 {
-    public static SendExpedition instance;
+    public static SendExpeditionPanel instance;
     public Location location;
     public Text locationText;
     public Image locationImage;
@@ -22,7 +22,7 @@ public class SendExpedition : MonoBehaviour
     void Awake()
     {
         if(instance != null){
-            Debug.LogWarning("plus d'une instance de SendExpedition dans la scène");
+            Debug.LogWarning("plus d'une instance de SendExpeditionPanel dans la scène");
             return;
         }
         instance = this;
@@ -126,5 +126,20 @@ public class SendExpedition : MonoBehaviour
     public void ClosePanel()
     {
         sendPanel.SetActive(false);
+    }
+
+    public void ShowSendExpedition()
+    {
+       if(IsPanelOpen())
+        {
+            ClosePanel();
+            return;
+        }
+        OpenPanel();
+    }
+
+    private bool IsPanelOpen()
+    {
+        return sendPanel.activeInHierarchy;
     }
 }
