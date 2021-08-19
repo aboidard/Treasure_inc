@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "Item", menuName = "ScriptableObject/Item")]
+[System.Serializable]
 public class Item : ScriptableObject
 {
     public int id;
@@ -10,6 +11,7 @@ public class Item : ScriptableObject
     public string description;
     public Rarity rarity = Rarity.Common;
     public Sprite graphics;
+    public int graphicsId;
 
     public override string ToString()
     {
@@ -55,8 +57,21 @@ public class Item : ScriptableObject
         item.price = Random.Range(1, 1000) + 1000 * (int) rarity;
         item.rarity = rarity;
         item.description = StringGenerator.ItemDescriptionGenerator();
-        item.graphics = ItemManager.instance.PickOneSprite();
-        int randomInt = Random.Range(1, ItemsDatabase.instance.allItems.Length + 1);
+        (item.graphics, item.graphicsId) = ItemManager.instance.PickOneRandomSprite();
+
+        return item;
+    }
+
+    public static Item CreateItemFromAPI(ItemFromAPI itemAPI)
+    {
+        Item item = ScriptableObject.CreateInstance("Item") as Item;
+        item.id = itemAPI.id;
+        item.name = itemAPI.name;
+        item.price = itemAPI.price;
+        item.rarity = (Rarity) System.Enum.Parse(typeof(Rarity), itemAPI.rarity, true);
+        item.description = itemAPI.description;
+        item.graphics = ItemManager.instance.PickSprite(itemAPI.graphics);
+        item.graphicsId = itemAPI.graphics;
         return item;
     }
 
@@ -114,4 +129,30 @@ public enum Rarity
     Rare = 5,
     Epic = 20,
     Legendary = 100
+}
+
+[System.Serializable]
+public class ItemFromAPI
+{
+    public int id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public string rarity { get; set; }
+    public int graphics { get; set; }
+    public int price { get; set; }
+
+    public ItemFromAPI()
+    {
+
+    }
+    
+    public ItemFromAPI(Item item)
+    {
+        this.id = item.id;
+        this.name = item.name;
+        this.description = item.description;
+        this.rarity = item.rarity.ToString();
+        this.graphics = item.graphicsId;
+        this.price = item.price;
+    }
 }

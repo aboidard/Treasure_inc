@@ -70,7 +70,7 @@ public class LootPanel : MonoBehaviour
 
     public void TakeAll()
     {
-        Inventory.instance.AddItems(this.items);
+        Inventory.instance.AddItemsAndPersist(this.items);
         this.items.Clear();
         this.ClosePanel();
     }
