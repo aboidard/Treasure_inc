@@ -1,6 +1,5 @@
 using UnityEngine.UI;
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -20,19 +19,20 @@ public class Inventory : MonoBehaviour
 
     void Awake()
     {
-        if(instance != null){
+        if (instance != null)
+        {
             Debug.LogWarning("plus d'une instance d'Inventory dans la scène");
             return;
         }
         instance = this;
     }
 
-    private void Start() 
+    private void Start()
     {
         loadingItems = true;
         loadingMoney = true;
-        
-        
+
+
         // items = new List<Item>();
         // //debug
         // for (int i = 0; i < 30; i++)
@@ -43,7 +43,8 @@ public class Inventory : MonoBehaviour
         UpdateMoneyUI();
     }
 
-    public void InitItemsFromJSON(string itemsJson){
+    public void InitItemsFromJSON(string itemsJson)
+    {
         Debug.Log(itemsJson);
 
         List<ItemFromAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemFromAPI>>(itemsJson);
@@ -60,7 +61,7 @@ public class Inventory : MonoBehaviour
         nfi.NumberGroupSeparator = " ";
         moneyText.text = currentMoney.ToString("#,0.00", nfi);
     }
-    
+
     public void AddMoney(int amount)
     {
         currentMoney += amount;
@@ -77,8 +78,8 @@ public class Inventory : MonoBehaviour
     {
         this.items.Add(item);
     }
-    
-    
+
+
     public void AddItemsFromJSON(string itemsJson)
     {
         List<ItemFromAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemFromAPI>>(itemsJson);
@@ -91,13 +92,14 @@ public class Inventory : MonoBehaviour
     public void AddItemsAndPersist(List<Item> itemsToAdd)
     {
         List<ItemFromAPI> listItemFromApi = new List<ItemFromAPI>();
-        foreach (Item item in itemsToAdd) {
+        foreach (Item item in itemsToAdd)
+        {
             ItemFromAPI itemApi = new ItemFromAPI(item);
             listItemFromApi.Add(itemApi);
         }
 
         string itemsJson = JsonConvert.SerializeObject(listItemFromApi);
-        Task task = Task.Run(async () => 
+        Task task = Task.Run(async () =>
         {
             await NetworkManager.instance.AddUserItems(itemsJson);
         });
@@ -111,10 +113,10 @@ public class Inventory : MonoBehaviour
         {
             AddMoney(item.price);
             cost += item.price;
-            nb ++;
+            nb++;
         }
         items.Clear();
-        if(nb > 0)
+        if (nb > 0)
         {
             MessageManager.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
         }
