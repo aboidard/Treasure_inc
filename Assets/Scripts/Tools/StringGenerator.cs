@@ -81,9 +81,9 @@ public static class StringGenerator
         "usé,usée",
         "grisâtre",
         "délavé,délavée",
-        "banal",
+        "banal,banale",
         "ordinaire",
-        "courant",
+        "courant,courante",
         "habituel,habituelle"
     };
     private static string[] uncommonAdjectifItem = new string[]{
@@ -113,7 +113,7 @@ public static class StringGenerator
         "exceptionnel,exceptionnelle",
         "spectaculaire",
         "d'exception",
-        "sans pareil",
+        "sans pareil,sans pareille",
         "parfait,parfaite",
         "sensationnel,sensationnelle",
         "prodigieux,prodigieuse",
@@ -144,7 +144,7 @@ public static class StringGenerator
         result += ex[0] + " ";
 
         string[] adj = adjectifExpedition[Random.Range(0, adjectifExpedition.Length)].Split(',');
-        if(adj.Length > 1 && ex[1].Equals(FEMININ_GENDER))
+        if (adj.Length > 1 && ex[1].Equals(FEMININ_GENDER))
         {
             result += adj[1];
         }
@@ -155,7 +155,7 @@ public static class StringGenerator
 
         return result;
     }
-    
+
     public static string ItemDescriptionGenerator()
     {
         return descriptionItem[Random.Range(0, descriptionItem.Length)];
@@ -164,7 +164,7 @@ public static class StringGenerator
     {
         string result = "";
         string[] adj;
-        string[] item; 
+        string[] item;
 
         switch (rarity)
         {
@@ -189,10 +189,10 @@ public static class StringGenerator
                 item = commonItem[Random.Range(0, commonItem.Length)].Split(',');
                 break;
         }
-        
+
         result += item[0] + " ";
 
-        if(adj.Length > 1 && item[1].Equals(FEMININ_GENDER))
+        if (adj.Length > 1 && item[1].Equals(FEMININ_GENDER))
         {
             result += adj[1];
         }
