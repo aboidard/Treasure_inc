@@ -10,6 +10,7 @@ crew :	https://opengameart.org/content/db16-rpg-character-sprites-v2
 	https://opengameart.org/content/blordrough
 LOGO :	chest : https://opengameart.org/content/treasure-chests
 	parchment : https://opengameart.org/content/pixel-parchment-ui-kit
+pizza : https://opengameart.org/content/food-items-16x16
 old :
 (chest : https://opengameart.org/content/treasure-chest-pixel-art-animation)
 

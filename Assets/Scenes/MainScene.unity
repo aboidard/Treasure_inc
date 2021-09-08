@@ -9387,6 +9387,7 @@ MonoBehaviour:
   allItems:
   - {fileID: 11400000, guid: f151ec7ad0269f141b2ada20c91dab3d, type: 2}
   - {fileID: 11400000, guid: ea54506f151b37549bcbe7c51d07348d, type: 2}
+  - {fileID: 11400000, guid: 75b6d1dfb3264be4383cccfe42a74656, type: 2}
 --- !u!114 &1503234877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11545,7 +11546,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: New Text
+  m_Text: 
 --- !u!222 &2094470063
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
+using System.Linq;
 
 [CreateAssetMenu(fileName = "Item", menuName = "ScriptableObject/Item")]
 [System.Serializable]
@@ -15,8 +15,8 @@ public class Item : ScriptableObject
 
     public override string ToString()
     {
-        string result =  "id : " + this.id + " | name : " + this.name + " | rarity : " ;
-        result += "<color=" + getRarityColorString(this.rarity) + ">" + this.rarity + "</color> | price : " + this.price; 
+        string result = "id : " + this.id + " | name : " + this.name + " | rarity : ";
+        result += "<color=" + getRarityColorString(this.rarity) + ">" + this.rarity + "</color> | price : " + this.price;
 
         return result;
     }
@@ -28,7 +28,7 @@ public class Item : ScriptableObject
 
     public static Item GenerateRandomItem()
     {
-        int proba = Random.Range(1, 1001); 
+        int proba = Random.Range(1, 1001);
         Rarity rarity = Rarity.Common;
         switch (proba)
         {
@@ -54,12 +54,26 @@ public class Item : ScriptableObject
     {
         Item item = ScriptableObject.CreateInstance("Item") as Item;
         item.name = StringGenerator.ItemNameGenerator(rarity);
-        item.price = Random.Range(1, 1000) + 1000 * (int) rarity;
+        item.price = Random.Range(1, 1000) + 1000 * (int)rarity;
         item.rarity = rarity;
         item.description = StringGenerator.ItemDescriptionGenerator();
         (item.graphics, item.graphicsId) = ItemManager.instance.PickOneRandomSprite();
 
         return item;
+    }
+    public static Item GenerateScriptableItem(int id)
+    {
+        // Item item = ScriptableObject.CreateInstance("Item") as Item;
+        // AssetDatabase.CreateAsset(item, "Assets/Scripts/ScriptableObject/Items/pizza4fromages.asset");
+        // AssetDatabase.SaveAssets();
+        // AssetDatabase.Refresh();
+
+        Item currentItem = ItemsDatabase.instance.allItems.Single(x => x.id == id);
+        Inventory.instance.AddItem(currentItem);
+
+        Debug.Log("création d'un objet : " + currentItem);
+        return currentItem;
+
     }
 
     public static Item CreateItemFromAPI(ItemFromAPI itemAPI)
@@ -68,7 +82,7 @@ public class Item : ScriptableObject
         item.id = itemAPI.id;
         item.name = itemAPI.name;
         item.price = itemAPI.price;
-        item.rarity = (Rarity) System.Enum.Parse(typeof(Rarity), itemAPI.rarity, true);
+        item.rarity = (Rarity)System.Enum.Parse(typeof(Rarity), itemAPI.rarity, true);
         item.description = itemAPI.description;
         item.graphics = ItemManager.instance.PickSprite(itemAPI.graphics);
         item.graphicsId = itemAPI.graphics;
@@ -145,7 +159,7 @@ public class ItemFromAPI
     {
 
     }
-    
+
     public ItemFromAPI(Item item)
     {
         this.id = item.id;
