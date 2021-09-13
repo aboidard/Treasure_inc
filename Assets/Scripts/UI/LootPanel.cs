@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class LootPanel : MonoBehaviour
 {
-    public GameObject lootPanel;    
+    public GameObject lootPanel;
     public Text lootTitle;
     public Transform listObject;
     public GameObject objectPanelPrefab;
@@ -12,8 +12,9 @@ public class LootPanel : MonoBehaviour
     private List<Item> items;
     void Awake()
     {
-        if(instance != null){
-            Debug.LogWarning("plus d'une instance de LootPanel dans la scène");
+        if (instance != null)
+        {
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
             return;
         }
         instance = this;
@@ -55,14 +56,14 @@ public class LootPanel : MonoBehaviour
         var cost = 0;
         var nb = 0;
         for (int i = 0; i < this.items.Count; i++)
-        {            
+        {
             Inventory.instance.AddMoney(this.items[i].price);
             cost += this.items[i].price;
-            nb ++;
+            nb++;
         }
         this.items.Clear();
         this.ClosePanel();
-        if(nb > 0)
+        if (nb > 0)
         {
             MessageManager.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
         }
@@ -77,8 +78,8 @@ public class LootPanel : MonoBehaviour
 
     public void OpenPanel()
     {
-        
-        lootPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
+
+        lootPanel.transform.position = new Vector3(Screen.width / 2, Screen.height / 2, 0);
         lootPanel.SetActive(true);
     }
 

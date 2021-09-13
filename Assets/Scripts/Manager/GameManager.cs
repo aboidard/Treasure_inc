@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System;
-using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,7 +10,7 @@ public class GameManager : MonoBehaviour
     {
         if (instance != null)
         {
-            Debug.LogWarning("plus d'une instance de GameManager dans la scène");
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
             return;
         }
         instance = this;
@@ -60,7 +58,7 @@ public class GameManager : MonoBehaviour
         // }
         if (Input.GetKeyDown(KeyCode.I))
         {
-            Item item = Item.GenerateScriptableItem(3);
+            Item item = Item.GenerateScriptableItem(1);
             Inventory.instance.AddItem(item);
         }
     }

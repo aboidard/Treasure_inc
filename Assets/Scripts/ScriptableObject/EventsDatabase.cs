@@ -6,8 +6,9 @@ public class EventDatabase : MonoBehaviour
     public static EventDatabase instance;
     private void Awake()
     {
-        if(instance != null){
-            Debug.LogWarning("plus d'une instance de EventDatabase dans la scène");
+        if (instance != null)
+        {
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
             return;
         }
         instance = this;

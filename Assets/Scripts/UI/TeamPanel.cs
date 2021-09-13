@@ -1,10 +1,9 @@
 using UnityEngine;
-
-public class LocationsDatabase : MonoBehaviour
+public class TeamPanel : Panel
 {
-    public Location[] allLocations;
-    public static LocationsDatabase instance;
-    private void Awake()
+    public static TeamPanel instance;
+
+    void Awake()
     {
         if (instance != null)
         {
@@ -13,4 +12,5 @@ public class LocationsDatabase : MonoBehaviour
         }
         instance = this;
     }
+
 }

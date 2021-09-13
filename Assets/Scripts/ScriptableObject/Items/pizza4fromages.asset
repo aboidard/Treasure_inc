@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f1e259babdc9ef4a9dae75f4e1411e0, type: 3}
   m_Name: pizza4fromages
   m_EditorClassIdentifier: 
-  id: 3
+  id: 1
   name: pizza 4 fromages chorizo
   price: 15500
   description: "Franchement pour une pizza surgel\xE9e elle est vraiment pas mal..."

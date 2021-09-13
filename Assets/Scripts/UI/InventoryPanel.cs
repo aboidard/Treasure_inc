@@ -1,34 +1,23 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InventoryPanel : MonoBehaviour
+public class InventoryPanel : Panel
 {
-    public GameObject inventoryPanel;    
     public Transform listObject;
     public GameObject objectPanelPrefab;
     public static InventoryPanel instance;
+
     void Awake()
     {
-        if(instance != null){
-            Debug.LogWarning("plus d'une instance de LootPanel dans la scène");
+        if (instance != null)
+        {
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
             return;
         }
         instance = this;
     }
-    private void Start()
+    protected override void WillShow()
     {
-        ClosePanel();
-    }
-
-    public void ShowInventory()
-    {
-        if(IsPanelOpen())
-        {
-            ClosePanel();
-            return;
-        }
-
         //init
         for (int i = 0; i < listObject.childCount; i++)
         {
@@ -48,8 +37,6 @@ public class InventoryPanel : MonoBehaviour
             //panel.GetComponents<Button>()[0].onClick.AddListener(delegate{objectPanel.GetItem();});
             //panel.GetComponents<Button>()[1].onClick.AddListener(delegate{objectPanel.SellItem();});
         }
-        
-        OpenPanel();
     }
 
     public void SellAll()
@@ -57,32 +44,16 @@ public class InventoryPanel : MonoBehaviour
         var cost = 0;
         var nb = 0;
         for (int i = 0; i < Inventory.instance.Items.Count; i++)
-        {            
+        {
             Inventory.instance.AddMoney(Inventory.instance.Items[i].price);
             cost += Inventory.instance.Items[i].price;
-            nb ++;
+            nb++;
         }
         Inventory.instance.Items.Clear();
-        this.ClosePanel();
-        if(nb > 0)
+        this.Close();
+        if (nb > 0)
         {
             MessageManager.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
         }
-    }
-
-    public void OpenPanel()
-    {
-        
-        inventoryPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
-        inventoryPanel.SetActive(true);
-    }
-
-    public void ClosePanel()
-    {
-        inventoryPanel.SetActive(false);
-    }
-    private bool IsPanelOpen()
-    {
-        return inventoryPanel.activeInHierarchy;
     }
 }

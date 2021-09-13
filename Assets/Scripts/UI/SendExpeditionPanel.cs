@@ -3,9 +3,8 @@ using UnityEngine.UI;
 using System.Linq;
 using System;
 
-public class SendExpeditionPanel : MonoBehaviour
+public class SendExpeditionPanel : Panel
 {
-    public static SendExpeditionPanel instance;
     public Location location;
     public Text locationText;
     public Image locationImage;
@@ -13,24 +12,25 @@ public class SendExpeditionPanel : MonoBehaviour
     public int time = 10;
     public Slider timeSlider;
     public Text timeText;
-    public GameObject sendPanel;
     public GameObject locationGridPanel;
     public GameObject locationGridButtonPrefab;
     public LocationGridButton locationButtonSelected;
     public bool isDiging;
+    public static SendExpeditionPanel instance;
 
     void Awake()
     {
-        if(instance != null){
-            Debug.LogWarning("plus d'une instance de SendExpeditionPanel dans la scène");
+        if (instance != null)
+        {
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
             return;
         }
         instance = this;
     }
-    private void Start() 
+
+    protected override void WillStart()
     {
         UpdateUI();
-        ClosePanel();
     }
 
     public void UpdateUI()
@@ -45,49 +45,49 @@ public class SendExpeditionPanel : MonoBehaviour
     public void OnClickNextLocation()
     {
         int NextLocationId = location.id + 1;
-        if(NextLocationId > LocationsDatabase.instance.allLocations.Count())
+        if (NextLocationId > LocationsDatabase.instance.allLocations.Count())
         {
             NextLocationId = 1;
         }
-        location = LocationsDatabase.instance.allLocations.Single(x=> x.id == NextLocationId);
-        
+        location = LocationsDatabase.instance.allLocations.Single(x => x.id == NextLocationId);
+
         CreateGridLocation();
         UpdateUI();
     }
     public void OnClickPreviousLocation()
     {
         int previousLocationId = location.id - 1;
-        if(previousLocationId == 0)
+        if (previousLocationId == 0)
         {
             previousLocationId = LocationsDatabase.instance.allLocations.Count();
         }
-        location = LocationsDatabase.instance.allLocations.Single(x=> x.id == previousLocationId);
-        
+        location = LocationsDatabase.instance.allLocations.Single(x => x.id == previousLocationId);
+
         CreateGridLocation();
         UpdateUI();
     }
 
     public void OnValueChangedSlider()
     {
-        time = (int) Math.Round(timeSlider.value);
+        time = (int)Math.Round(timeSlider.value);
         UpdateUI();
     }
 
     public void OnClickSend()
     {
-        if(locationButtonSelected != null)
+        if (locationButtonSelected != null)
         {
             Debug.Log("location button Event : " + locationButtonSelected.locationEvent[0]);
         }
         Expedition expedition = ExpeditionManager.instance.SendExpedition(location, time);
         MessageManager.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
         DestroyGridLocation();
-        ClosePanel();
+        Close();
     }
 
     private void DestroyGridLocation()
     {
-        for(int i = 0; i < locationGridPanel.transform.childCount; i++)
+        for (int i = 0; i < locationGridPanel.transform.childCount; i++)
         {
             Destroy(locationGridPanel.transform.GetChild(i).gameObject);
         }
@@ -100,46 +100,24 @@ public class SendExpeditionPanel : MonoBehaviour
             GameObject button = Instantiate(locationGridButtonPrefab, locationGridPanel.transform);
             LocationGridButton buttonScript = button.GetComponent<LocationGridButton>();
 
-            button.GetComponent<Button>().onClick.AddListener(delegate{buttonScript.ClickLocation();});
+            button.GetComponent<Button>().onClick.AddListener(delegate { buttonScript.ClickLocation(); });
         }
         HideLocationButtons();
     }
 
     public void HideLocationButtons()
-    {   
+    {
         for (int i = 0; i < locationGridPanel.transform.childCount; i++)
-        { 
+        {
             var image = locationGridPanel.transform.GetChild(i).gameObject.GetComponent<Image>();
             var tempColor = image.color;
             tempColor.a = 0f;
             image.color = tempColor;
-        } 
-    }
-
-    public void OpenPanel()
-    {
-        sendPanel.transform.position =  new Vector3(Screen.width/2, Screen.height/2, 0);
-        sendPanel.SetActive(true);
-        CreateGridLocation();
-    }
-
-    public void ClosePanel()
-    {
-        sendPanel.SetActive(false);
-    }
-
-    public void ShowSendExpedition()
-    {
-       if(IsPanelOpen())
-        {
-            ClosePanel();
-            return;
         }
-        OpenPanel();
     }
 
-    private bool IsPanelOpen()
+    protected override void WillShow()
     {
-        return sendPanel.activeInHierarchy;
+        CreateGridLocation();
     }
 }

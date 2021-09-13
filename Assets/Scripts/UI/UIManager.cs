@@ -2,8 +2,25 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    public void ShowItemInfoPanel(Item item)
+
+    public Panel[] panels;
+
+    public static UIManager instance;
+    void Awake()
     {
-        ItemInfoPanel.instance.ShowItemInfo(item);
+        if (instance != null)
+        {
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
+            return;
+        }
+        instance = this;
+    }
+
+    public void CloseAllPanel()
+    {
+        foreach (var panel in panels)
+        {
+            panel.Close();
+        }
     }
 }
