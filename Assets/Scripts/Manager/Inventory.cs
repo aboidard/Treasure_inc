@@ -1,5 +1,6 @@
 using UnityEngine.UI;
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -15,7 +16,8 @@ public class Inventory : MonoBehaviour
     public Text moneyText;
     [SerializeField]
     public bool loadingItems;
-    public bool loadingMoney;
+    public string initialItemLoaded;
+    public string itemToAdd;
 
     void Awake()
     {
@@ -30,29 +32,46 @@ public class Inventory : MonoBehaviour
     private void Start()
     {
         loadingItems = true;
-        loadingMoney = true;
 
+        //lancer une tache de récupération des items du user
+        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.GET_USER_ITEMS));
 
-        // items = new List<Item>();
-        // //debug
-        // for (int i = 0; i < 30; i++)
-        // {
-        //     AddItem(Item.GenerateRandomItem());
-        // }
+        StartCoroutine(WaitForInitialLoading());
+    }
 
+    private IEnumerator WaitForInitialLoading()
+    {
+        //synchronisation avec NetworkManager
+        while (loadingItems)
+        {
+            Debug.Log("Wait... " + loadingItems);
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        Debug.Log("OK... " + loadingItems + " items : " + initialItemLoaded);
+        InitItemsFromJSON();
         UpdateMoneyUI();
     }
 
-    public void InitItemsFromJSON(string itemsJson)
+    private void Update()
     {
-        Debug.Log(itemsJson);
-
-        List<ItemFromAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemFromAPI>>(itemsJson);
-        foreach (ItemFromAPI it in itemsFromJSON)
+        if (itemToAdd != string.Empty)
         {
-            AddItem(Item.CreateItemFromAPI(it));
+            AddItemsFromJSON(itemToAdd);
+            itemToAdd = string.Empty;
         }
+    }
 
+    public void InitItemsFromJSON()
+    {
+        if (initialItemLoaded == string.Empty) return;
+        List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(initialItemLoaded);
+
+        if (itemsFromJSON == null) return;
+        foreach (ItemAPI it in itemsFromJSON)
+        {
+            AddItem(Item.CreateItemAPI(it));
+        }
     }
 
     void UpdateMoneyUI()
@@ -82,23 +101,24 @@ public class Inventory : MonoBehaviour
 
     public void AddItemsFromJSON(string itemsJson)
     {
-        List<ItemFromAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemFromAPI>>(itemsJson);
-        foreach (ItemFromAPI it in itemsFromJSON)
+        List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(itemsJson);
+        foreach (ItemAPI it in itemsFromJSON)
         {
-            AddItem(Item.CreateItemFromAPI(it));
+            Item myItem = Item.CreateItemAPI(it);
+            AddItem(myItem);
         }
     }
 
     public void AddItemsAndPersist(List<Item> itemsToAdd)
     {
-        List<ItemFromAPI> listItemFromApi = new List<ItemFromAPI>();
+        List<ItemAPI> listItemApi = new List<ItemAPI>();
         foreach (Item item in itemsToAdd)
         {
-            ItemFromAPI itemApi = new ItemFromAPI(item);
-            listItemFromApi.Add(itemApi);
+            ItemAPI itemApi = new ItemAPI(item);
+            listItemApi.Add(itemApi);
         }
 
-        string itemsJson = JsonConvert.SerializeObject(listItemFromApi);
+        string itemsJson = JsonConvert.SerializeObject(listItemApi);
         Task task = Task.Run(async () =>
         {
             await NetworkManager.instance.AddUserItems(itemsJson);
@@ -122,6 +142,13 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public float CurrentMoney => currentMoney;
+    public int CurrentMoney
+    {
+        get => currentMoney;
+        set
+        {
+            currentMoney = value;
+        }
+    }
     public List<Item> Items => items;
 }

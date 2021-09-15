@@ -1,6 +1,8 @@
 using UnityEngine;
+using UnityEngine.UI;
 public class SettingsPanel : Panel
 {
+    public Text idUtilisateur;
     public static SettingsPanel instance;
 
     void Awake()
@@ -11,5 +13,10 @@ public class SettingsPanel : Panel
             return;
         }
         instance = this;
+    }
+
+    protected override void WillShow()
+    {
+        idUtilisateur.text = NetworkManager.instance.publicKey;
     }
 }

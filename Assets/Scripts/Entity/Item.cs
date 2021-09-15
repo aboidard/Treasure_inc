@@ -76,7 +76,7 @@ public class Item : ScriptableObject
 
     }
 
-    public static Item CreateItemFromAPI(ItemFromAPI itemAPI)
+    public static Item CreateItemAPI(ItemAPI itemAPI)
     {
         Item item = ScriptableObject.CreateInstance("Item") as Item;
         item.id = itemAPI.id;
@@ -146,7 +146,7 @@ public enum Rarity
 }
 
 [System.Serializable]
-public class ItemFromAPI
+public class ItemAPI
 {
     public int id { get; set; }
     public string name { get; set; }
@@ -155,12 +155,12 @@ public class ItemFromAPI
     public int graphics { get; set; }
     public int price { get; set; }
 
-    public ItemFromAPI()
+    public ItemAPI()
     {
 
     }
 
-    public ItemFromAPI(Item item)
+    public ItemAPI(Item item)
     {
         this.id = item.id;
         this.name = item.name;
