@@ -13,10 +13,10 @@ public class EventManager : MonoBehaviour
         }
         instance = this;
     }
-    public void GenerateEvent(Expedition expedition)
+    public Event GenerateRandomEvent(Event[] targetAvailableList, GameObject targetViewport)
     {
-        expedition.items.Add(Item.GenerateRandomItem());
+        Event target = Instantiate(targetAvailableList[0], targetViewport.transform);
+        target.SetReward(Item.GenerateRandomItems(1));
+        return target;
     }
-
-
 }

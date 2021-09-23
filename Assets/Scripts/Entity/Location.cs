@@ -15,3 +15,11 @@ public class Location : ScriptableObject
         this.name = name;
     }
 }
+public enum EventLocationType
+{
+    None = 0,
+    UpToOneBonus = 1,
+    UpToTwoBonus = 2,
+    UpToThreeBonus = 3,
+    UpTofourBonus = 4
+}

@@ -35,7 +35,7 @@ public class NetworkManager : MonoBehaviour
         apiUrl = "http://127.0.0.1:8081";
         Debug.Log("url de l'api (dev) : " + apiUrl);
 #else
-        apiUrl = "http://api.treasure-inc.fr";
+        apiUrl = "https://api.treasure-inc.fr";
         Debug.Log("url de l'api (prod) : " + apiUrl);
 #endif        
         LoadAndSaveData.instance.LoadUserKeys();
@@ -47,7 +47,7 @@ public class NetworkManager : MonoBehaviour
         {
             await this.Login();
         }
-        await this.GetVersionServer();
+        await this.GetHealthCheckServer();
     }
 
     public void Update()
@@ -76,12 +76,12 @@ public class NetworkManager : MonoBehaviour
         this.queue.Enqueue(request);
     }
 
-    public async Task GetVersionServer()
+    public async Task GetHealthCheckServer()
     {
         string responseBody = "";
         try
         {
-            HttpResponseMessage response = await client.GetAsync(apiUrl + "/version");
+            HttpResponseMessage response = await client.GetAsync(apiUrl + "/healthcheck");
             response.EnsureSuccessStatusCode();
             responseBody = await response.Content.ReadAsStringAsync();
 
@@ -89,10 +89,9 @@ public class NetworkManager : MonoBehaviour
         }
         catch (HttpRequestException e)
         {
-            Debug.Log("\nException Caught! GetVersionServer");
+            Debug.Log("\nException Caught! healthcheck");
             Debug.Log("Message : " + e.Message);
         }
-
     }
 
     public async Task GetNewUserAndLogin()

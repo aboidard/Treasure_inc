@@ -11,6 +11,8 @@ crew :	https://opengameart.org/content/db16-rpg-character-sprites-v2
 LOGO :	chest : https://opengameart.org/content/treasure-chests
 	parchment : https://opengameart.org/content/pixel-parchment-ui-kit
 pizza : https://opengameart.org/content/food-items-16x16
+touch icon : https://www.flaticon.com/authors/pixel-perfect
+cave : https://opengameart.org/content/roguelike-caves-dungeons-pack
 old :
 (chest : https://opengameart.org/content/treasure-chest-pixel-art-animation)
 

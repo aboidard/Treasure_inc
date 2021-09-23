@@ -1,40 +1,40 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Expedition
 {
-    public string name;
-    public float timeScheduled;
-    private float timeElapsed = 0;
-    private float timeElapsedSinceLastEvent = 0;
+    public string expeditionName;
+    public float difficulty;
     public int distance;
     public Location location;
     public List<CrewMember> crewMembers;
     public List<Item> items;
-    public List<Event> events;
-    public float efficiency = 1f;
+    public int nbTtotalFloor;
+    public int currentFloor;
+    public GameObject panelRun;
+    public bool over = false;
+    public bool floorOver = false;
 
-    public Expedition()
+    public void Init()
     {
         this.items = new List<Item>();
         this.crewMembers = new List<CrewMember>();
-        this.timeScheduled = 10000;
+        this.currentFloor = 1;
+        UpdateTitle();
     }
 
     public override string ToString()
     {
-        return "\"" + name + "\" (" + location.name + ") : " + string.Join("\n", items); 
+        return "\"" + expeditionName + "\" (" + location.name + ") : " + string.Join("\n", items);
     }
 
-    public void UpdateTimeElapsed(float deltaTimeElapsed)
+    public void UpdateTitle()
     {
-        this.timeElapsed += deltaTimeElapsed;
-        this.timeElapsedSinceLastEvent += deltaTimeElapsed;
+        panelRun.GetComponent<ExpeditionRunPanel>().title.text = this.expeditionName + " - étage " + this.currentFloor + "/" + this.nbTtotalFloor;
     }
 
-    public float TimeElapsed => timeElapsed;
-    public float TimeElapsedSinceLastEvent
+    public bool IsOver()
     {
-        get => timeElapsedSinceLastEvent;
-        set => timeElapsedSinceLastEvent = value;
+        return panelRun.GetComponent<ExpeditionRunPanel>().endMiniGame;
     }
 }

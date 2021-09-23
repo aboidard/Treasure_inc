@@ -1,20 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Event", menuName = "ScriptableObject/Event")]
-public class Event : ScriptableObject
+public class Event : MonoBehaviour
 {
-    public int id;
-    public string text;
-    public List<Item> lootTable;
-    public float proba;
+    public GameObject eventObject;
+
+    public virtual bool Reach()
+    {
+        return true;
+    }
+
+    public virtual List<Item> GetReward()
+    {
+        return null;
+    }
+
+    public virtual void SetReward(List<Item> items)
+    {
+    }
+
+    public virtual void Start()
+    {
+
+    }
 }
 
-public enum EventLocationType
-{
-    None = 0,
-    UpToOneBonus = 1,
-    UpToTwoBonus = 2,
-    UpToThreeBonus = 3,
-    UpTofourBonus = 4
-}

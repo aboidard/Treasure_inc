@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class InventoryPanel : Panel
 {
-    public Transform listObject;
+    public GameObject listObject;
     public GameObject objectPanelPrefab;
     public static InventoryPanel instance;
 
@@ -19,14 +19,14 @@ public class InventoryPanel : Panel
     protected override void WillShow()
     {
         //init
-        for (int i = 0; i < listObject.childCount; i++)
+        for (int i = 0; i < listObject.transform.childCount; i++)
         {
-            Destroy(listObject.GetChild(i).gameObject);
+            Destroy(listObject.transform.GetChild(i).gameObject);
         }
 
         for (int i = 0; i < Inventory.instance.Items.Count; i++)
         {
-            GameObject panel = Instantiate(objectPanelPrefab, listObject);
+            GameObject panel = Instantiate(objectPanelPrefab, listObject.transform);
             ObjectPanel objectPanel = panel.GetComponent<ObjectPanel>();
             objectPanel.itemName.text = Inventory.instance.Items[i].name;
             objectPanel.itemImage.sprite = Inventory.instance.Items[i].graphics;
@@ -37,6 +37,9 @@ public class InventoryPanel : Panel
             //panel.GetComponents<Button>()[0].onClick.AddListener(delegate{objectPanel.GetItem();});
             //panel.GetComponents<Button>()[1].onClick.AddListener(delegate{objectPanel.SellItem();});
         }
+        float width = listObject.GetComponent<RectTransform>().rect.width;
+        Vector2 newSize = new Vector2(width / 3, width / 3);
+        listObject.GetComponent<GridLayoutGroup>().cellSize = newSize;
     }
 
     public void SellAll()

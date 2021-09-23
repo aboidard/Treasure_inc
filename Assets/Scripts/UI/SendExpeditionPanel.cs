@@ -9,9 +9,9 @@ public class SendExpeditionPanel : Panel
     public Text locationText;
     public Image locationImage;
     public Text costText;
-    public int time = 10;
-    public Slider timeSlider;
-    public Text timeText;
+    public int floor = 10;
+    public Slider floorSlider;
+    public Text floorText;
     public GameObject locationGridPanel;
     public GameObject locationGridButtonPrefab;
     public LocationGridButton locationButtonSelected;
@@ -37,9 +37,9 @@ public class SendExpeditionPanel : Panel
     {
         locationText.text = location.name;
         locationImage.sprite = location.graphics;
-        costText.text = "- " + ExpeditionManager.instance.ComputeCost(time, location);
-        timeSlider.value = time;
-        timeText.text = timeSlider.value.ToString() + " mois";
+        costText.text = "- " + ExpeditionManager.instance.ComputeCost(floor, location);
+        floorSlider.value = floor;
+        floorText.text = floorSlider.value.ToString() + (floorSlider.value != 1 ? " étages" : " étage");
     }
 
     public void OnClickNextLocation()
@@ -69,7 +69,7 @@ public class SendExpeditionPanel : Panel
 
     public void OnValueChangedSlider()
     {
-        time = (int)Math.Round(timeSlider.value);
+        floor = (int)Math.Round(floorSlider.value);
         UpdateUI();
     }
 
@@ -79,8 +79,8 @@ public class SendExpeditionPanel : Panel
         {
             Debug.Log("location button Event : " + locationButtonSelected.locationEvent[0]);
         }
-        Expedition expedition = ExpeditionManager.instance.SendExpedition(location, time);
-        MessageManager.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
+        Expedition expedition = ExpeditionManager.instance.SendExpedition(location, floor);
+        //MessageManager.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
         DestroyGridLocation();
         Close();
     }

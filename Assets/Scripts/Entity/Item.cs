@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "Item", menuName = "ScriptableObject/Item")]
 [System.Serializable]
@@ -24,6 +25,16 @@ public class Item : ScriptableObject
     public string GetColoredName()
     {
         return "<color=" + getRarityColorString(this.rarity) + ">" + this.name + "</color>";
+    }
+
+    public static List<Item> GenerateRandomItems(int nb)
+    {
+        List<Item> list = new List<Item>();
+        for (int i = 0; i < nb; i++)
+        {
+            list.Add(GenerateRandomItem());
+        }
+        return list;
     }
 
     public static Item GenerateRandomItem()

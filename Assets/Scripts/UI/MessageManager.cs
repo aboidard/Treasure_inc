@@ -17,6 +17,10 @@ public class MessageManager : MonoBehaviour
         }
         instance = this;
     }
+    private void Start()
+    {
+        this.messagePanel.SetActive(false);
+    }
 
     public void DisplayMessage(string title, string text)
     {

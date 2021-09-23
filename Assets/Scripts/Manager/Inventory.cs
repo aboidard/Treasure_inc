@@ -78,7 +78,7 @@ public class Inventory : MonoBehaviour
     {
         var nfi = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
         nfi.NumberGroupSeparator = " ";
-        moneyText.text = currentMoney.ToString("#,0.00", nfi);
+        moneyText.text = currentMoney.ToString("#,0", nfi);
     }
 
     public void AddMoney(int amount)

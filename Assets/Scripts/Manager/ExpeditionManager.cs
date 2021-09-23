@@ -6,12 +6,13 @@ public class ExpeditionManager : MonoBehaviour
 {
     public static ExpeditionManager instance;
     public List<Expedition> expeditionList;
-    
-    private List<Expedition> expeditionToRemove;
-    
+    public GameObject expeditionPanelPrefab;
+    public GameObject expeditionsPanelGrid;
+
     void Awake()
     {
-        if(instance != null){
+        if (instance != null)
+        {
             Debug.LogWarning("plus d'une instance d'ExpeditionManager dans la scène");
             return;
         }
@@ -21,7 +22,12 @@ public class ExpeditionManager : MonoBehaviour
     void Start()
     {
         expeditionList = new List<Expedition>();
-        expeditionToRemove = new List<Expedition>();
+
+        //init
+        for (int i = 0; i < expeditionsPanelGrid.transform.childCount; i++)
+        {
+            Destroy(expeditionsPanelGrid.transform.GetChild(i).gameObject);
+        }
     }
 
     private void FixedUpdate()
@@ -34,51 +40,54 @@ public class ExpeditionManager : MonoBehaviour
         //traitement des expeditions
         foreach (var expedition in expeditionList)
         {
-            expedition.UpdateTimeElapsed(Time.fixedDeltaTime);
-            if(expedition.TimeElapsedSinceLastEvent >= expedition.efficiency)
+            //expedition.Update();
+            if (expedition.floorOver)
             {
-                EventManager.instance.GenerateEvent(expedition);
-                expedition.TimeElapsedSinceLastEvent = expedition.TimeElapsedSinceLastEvent - 1f;
+                expedition.currentFloor++;
+                //calcul si l'expedition est finie
+                if (expedition.currentFloor > expedition.nbTtotalFloor)
+                {
+                    expedition.over = true;
+                    ExpeditionReturn(expedition);
+                    expeditionList.Remove(expedition);
+                    Destroy(expedition.panelRun);
+                }
+                else
+                {
+                    Destroy(expedition.panelRun);
+                    expedition.panelRun = Instantiate(expeditionPanelPrefab, expeditionsPanelGrid.transform);
+                    expedition.panelRun.GetComponent<ExpeditionRunPanel>().expedition = expedition;
+                    expedition.floorOver = false;
+                    expedition.UpdateTitle();
+                }
             }
-            if(expedition.TimeElapsed >= expedition.timeScheduled)
-            {
-                ExpeditionReturn(expedition);
-                expeditionToRemove.Add(expedition);
-            }
-        }
-
-        //suppression des expeditions terminées
-        foreach (var expedition in expeditionToRemove)
-        {
-            expeditionList.Remove(expedition);
-        }
-        if(expeditionToRemove.Count > 0)
-        {
-            expeditionToRemove.Clear();
         }
     }
 
-    public Expedition SendExpedition(Location location, int time)
+    public Expedition SendExpedition(Location location, int floor)
     {
-        int cost = ComputeCost(time, location);
+        int cost = ComputeCost(floor, location);
 
-        if(Inventory.instance.CurrentMoney < cost) throw new NotEnoughtMoneyException();
-
-        Expedition expedition = new Expedition();
-        expedition.name = StringGenerator.ExpeditionNameGenerator();
-        expedition.timeScheduled = time;
-        expedition.location = location;
+        if (Inventory.instance.CurrentMoney < cost) throw new NotEnoughtMoneyException();
 
         Inventory.instance.SubtractMoney(cost);
+        Expedition expedition = new Expedition();
+        expedition.expeditionName = StringGenerator.ExpeditionNameGenerator();
+        expedition.location = location;
+        expedition.nbTtotalFloor = floor;
+        expedition.panelRun = Instantiate(expeditionPanelPrefab, expeditionsPanelGrid.transform);
+        expedition.panelRun.GetComponent<ExpeditionRunPanel>().expedition = expedition;
+        expedition.Init();
         expeditionList.Add(expedition);
-        Debug.Log("Expedition send" + expedition);
+
+        Debug.Log("Expedition send " + expedition);
         return expedition;
     }
 
     public void ExpeditionReturn(Expedition ex)
     {
         Debug.Log("Expedition returned : " + ex);
-        LootPanel.instance.ShowLoot(ex.items, "l'expedition \"" + ex.name + "\" est de retour !");
+        LootPanel.instance.ShowLoot(ex.items, "l'expedition \"" + ex.expeditionName + "\" est de retour !");
     }
 
     public int ComputeCost(int time, Location location)
@@ -90,6 +99,6 @@ public class ExpeditionManager : MonoBehaviour
     public Item GenerateItem()
     {
         int randomInt = Random.Range(1, ItemsDatabase.instance.allItems.Length + 1);
-        return ItemsDatabase.instance.allItems.Single(x=> x.id == randomInt);
+        return ItemsDatabase.instance.allItems.Single(x => x.id == randomInt);
     }
 }
