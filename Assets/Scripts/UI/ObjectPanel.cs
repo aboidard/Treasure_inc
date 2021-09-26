@@ -7,7 +7,8 @@ public class ObjectPanel : MonoBehaviour
     public Image itemImage;
     public Image itemBorder;
     public Item item;
-	
+    public Toggle deleteToggle;
+
     public void GetItem()
     {
         // Inventory inventory = Inventory.instance;
@@ -33,9 +34,9 @@ public class ObjectPanel : MonoBehaviour
 
     public void GetUiItem()
     {
-        
+
     }
-    
+
     public void OnClickInfoButton()
     {
         ItemInfoPanel.instance.ShowItemInfo(item);

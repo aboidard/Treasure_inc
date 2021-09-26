@@ -6,13 +6,12 @@ public class Chest : Event
 {
     public Image lootImage;
     public Animator animator;
-    public List<Item> loot;
+    public List<Item> loot = new List<Item>();
     public int size;
 
     public override void Start()
     {
         lootImage.enabled = false;
-        loot = new List<Item>();
     }
 
     public override bool Reach()

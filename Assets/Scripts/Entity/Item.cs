@@ -37,6 +37,12 @@ public class Item : ScriptableObject
         return list;
     }
 
+    public bool Equals(Item other)
+    {
+        if (other == null) return false;
+        return (this.id.Equals(other.id));
+    }
+
     public static Item GenerateRandomItem()
     {
         int proba = Random.Range(1, 1001);

@@ -15,6 +15,7 @@ public class NetworkManager : MonoBehaviour
     private string apiUrl;
     public bool logedIn = false;
     private Queue queue;
+    private GameObject loader;
 
 
     void Awake()
