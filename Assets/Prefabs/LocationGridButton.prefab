@@ -293,5 +293,5 @@ MonoBehaviour:
   pickaxePrefab: {fileID: 6877689867845974942, guid: 61ab6327ef9ee2d40a5e39898ec05946, type: 3}
   border: {fileID: 2682629057919626475}
   digCostText: {fileID: 3615279612744713429}
-  digCost: 100
+  digCost: 0
   digTime: 0.2

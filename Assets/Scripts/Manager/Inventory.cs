@@ -1,9 +1,9 @@
-using UnityEngine.UI;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using Newtonsoft.Json;
 
 public class Inventory : MonoBehaviour
@@ -14,10 +14,6 @@ public class Inventory : MonoBehaviour
     [SerializeField]
     private List<Item> items;
     public Text moneyText;
-    [SerializeField]
-    public bool loadingItems;
-    public string initialItemLoaded;
-    public string itemToAdd;
 
     void Awake()
     {
@@ -31,82 +27,36 @@ public class Inventory : MonoBehaviour
 
     private void Start()
     {
-        loadingItems = true;
-
         //lancer une tache de récupération des items du user
         NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.GET_USER_ITEMS));
-
-        StartCoroutine(WaitForInitialLoading());
     }
 
-    private IEnumerator WaitForInitialLoading()
-    {
-        //synchronisation avec NetworkManager
-        while (loadingItems)
-        {
-            Debug.Log("Wait... " + loadingItems);
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        Debug.Log("OK... " + loadingItems + " items : " + initialItemLoaded);
-        InitItemsFromJSON();
-        UpdateMoneyUI();
-    }
-
-    private void Update()
-    {
-        if (itemToAdd != string.Empty)
-        {
-            AddItemsFromJSON(itemToAdd);
-            itemToAdd = string.Empty;
-        }
-    }
-
-    public void InitItemsFromJSON()
-    {
-        if (initialItemLoaded == string.Empty) return;
-        List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(initialItemLoaded);
-
-        if (itemsFromJSON == null) return;
-        foreach (ItemAPI it in itemsFromJSON)
-        {
-            AddItem(Item.CreateItemAPI(it));
-        }
-    }
-
-    void UpdateMoneyUI()
+    public void UpdateMoneyUI()
     {
         var nfi = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
         nfi.NumberGroupSeparator = " ";
+        if (moneyText == null)
+        {
+            moneyText = GameObject.FindGameObjectsWithTag("MoneyText")[0].GetComponent<Text>();
+        }
         moneyText.text = currentMoney.ToString("#,0", nfi);
     }
 
     public void AddMoney(int amount)
     {
         currentMoney += amount;
-        UpdateMoneyUI();
+        if (SceneManager.GetActiveScene().name == "MainScene") UpdateMoneyUI();
     }
 
     public void SubtractMoney(int amount)
     {
         currentMoney -= amount;
-        UpdateMoneyUI();
+        if (SceneManager.GetActiveScene().name == "MainScene") UpdateMoneyUI();
     }
 
     public void AddItem(Item item)
     {
         this.items.Add(item);
-    }
-
-
-    public void AddItemsFromJSON(string itemsJson)
-    {
-        List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(itemsJson);
-        foreach (ItemAPI it in itemsFromJSON)
-        {
-            Item myItem = Item.CreateItemAPI(it);
-            AddItem(myItem);
-        }
     }
 
     public void AddItemsAndPersist(List<Item> itemsToAdd)
@@ -118,28 +68,22 @@ public class Inventory : MonoBehaviour
             listItemApi.Add(itemApi);
         }
 
-        string itemsJson = JsonConvert.SerializeObject(listItemApi);
-        Task task = Task.Run(async () =>
-        {
-            await NetworkManager.instance.AddUserItems(itemsJson);
-        });
+        string[] itemsJson = { JsonConvert.SerializeObject(listItemApi) };
+        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.ADD_USER_ITEMS, itemsJson));
     }
 
-    public void SellAllItems()
+    public void RemoveItemsAndPersist(List<Item> itemsToRemove)
     {
-        var cost = 0;
-        var nb = 0;
-        foreach (var item in items)
+        List<ItemAPI> listItemApi = new List<ItemAPI>();
+        foreach (Item item in itemsToRemove)
         {
-            AddMoney(item.price);
-            cost += item.price;
-            nb++;
+            ItemAPI itemApi = new ItemAPI(item);
+            listItemApi.Add(itemApi);
+            items.Remove(item);
         }
-        items.Clear();
-        if (nb > 0)
-        {
-            MessageManager.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
-        }
+
+        string[] itemsJson = { JsonConvert.SerializeObject(listItemApi) };
+        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.REMOVE_USER_ITEMS, itemsJson));
     }
 
     public int CurrentMoney

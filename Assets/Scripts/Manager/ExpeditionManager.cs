@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
+using Newtonsoft.Json;
 
 public class ExpeditionManager : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class ExpeditionManager : MonoBehaviour
     public List<Expedition> expeditionList;
     public GameObject expeditionPanelPrefab;
     public GameObject expeditionsPanelGrid;
+    public GameObject LootPanelGrid;
+    public GameObject LootButtonPrefab;
 
     void Awake()
     {
@@ -37,6 +40,7 @@ public class ExpeditionManager : MonoBehaviour
 
     private void UpdateExpeditions()
     {
+        List<Expedition> expeditionToRemove = null;
         //traitement des expeditions
         foreach (var expedition in expeditionList)
         {
@@ -49,7 +53,11 @@ public class ExpeditionManager : MonoBehaviour
                 {
                     expedition.over = true;
                     ExpeditionReturn(expedition);
-                    expeditionList.Remove(expedition);
+                    if (expeditionToRemove == null)
+                    {
+                        expeditionToRemove = new List<Expedition>();
+                    }
+                    expeditionToRemove.Add(expedition);
                     Destroy(expedition.panelRun);
                 }
                 else
@@ -60,6 +68,19 @@ public class ExpeditionManager : MonoBehaviour
                     expedition.floorOver = false;
                     expedition.UpdateTitle();
                 }
+            }
+        }
+
+        CleanExpeditions(expeditionToRemove);
+    }
+
+    private void CleanExpeditions(List<Expedition> listToRemove)
+    {
+        if (listToRemove != null)
+        {
+            foreach (Expedition expedition in listToRemove)
+            {
+                expeditionList.Remove(expedition);
             }
         }
     }
@@ -80,6 +101,9 @@ public class ExpeditionManager : MonoBehaviour
         expedition.Init();
         expeditionList.Add(expedition);
 
+        string[] expeditionJson = { JsonConvert.SerializeObject(new ExpeditionAPI(cost)) };
+        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.SEND_EXPEDITION, expeditionJson));
+
         Debug.Log("Expedition send " + expedition);
         return expedition;
     }
@@ -87,7 +111,8 @@ public class ExpeditionManager : MonoBehaviour
     public void ExpeditionReturn(Expedition ex)
     {
         Debug.Log("Expedition returned : " + ex);
-        LootPanel.instance.ShowLoot(ex.items, "l'expedition \"" + ex.expeditionName + "\" est de retour !");
+        GameObject lootButton = Instantiate(LootButtonPrefab, LootPanelGrid.transform);
+        lootButton.GetComponent<LootButton>().ex = ex;
     }
 
     public int ComputeCost(int time, Location location)

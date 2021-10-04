@@ -68,7 +68,7 @@ public class ExpeditionRunPanel : MonoBehaviour
         // crewMember.transform.position = targetPosition;
 
         Vector3 velocity = Vector3.zero;
-        float smoothTime = 0.3F;
+        //float smoothTime = 0.3F;
         Vector3 targetPosition = new Vector3(initialPosition + value, crewViewport.transform.position.y, 0);
         crewViewport.transform.position = targetPosition; //Vector3.SmoothDamp(transform.position, targetPosition , ref velocity, smoothTime);
 

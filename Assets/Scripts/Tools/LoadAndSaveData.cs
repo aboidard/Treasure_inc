@@ -24,5 +24,6 @@ public class LoadAndSaveData : MonoBehaviour
     {
         PlayerPrefs.SetString("publicKey", NetworkManager.instance.publicKey);
         PlayerPrefs.SetString("privateKey", NetworkManager.instance.privateKey);
+        PlayerPrefs.Save();
     }
 }

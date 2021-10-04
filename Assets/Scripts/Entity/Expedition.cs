@@ -38,3 +38,14 @@ public class Expedition
         return panelRun.GetComponent<ExpeditionRunPanel>().endMiniGame;
     }
 }
+
+[System.Serializable]
+public class ExpeditionAPI
+{
+    public int cost { get; set; }
+
+    public ExpeditionAPI(int cost)
+    {
+        this.cost = cost;
+    }
+}

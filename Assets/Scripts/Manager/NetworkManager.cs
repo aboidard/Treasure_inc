@@ -1,9 +1,11 @@
 using System;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Networking;
 using Newtonsoft.Json;
 
 public class NetworkManager : MonoBehaviour
@@ -14,11 +16,11 @@ public class NetworkManager : MonoBehaviour
     static readonly HttpClient client = new HttpClient();
     private string apiUrl;
     public bool logedIn = false;
-    private Queue queue;
-    private GameObject loader;
+    private Queue queue = new Queue();
+    public Text serverInfos;
 
 
-    void Awake()
+    private void Awake()
     {
         if (instance != null)
         {
@@ -28,42 +30,60 @@ public class NetworkManager : MonoBehaviour
         instance = this;
     }
 
-    async private void Start()
+    private void Start()
     {
-        //initialisation de la queue FIFO
-        queue = new Queue();
 #if UNITY_EDITOR
         apiUrl = "http://127.0.0.1:8081";
         Debug.Log("url de l'api (dev) : " + apiUrl);
 #else
         apiUrl = "https://api.treasure-inc.fr";
         Debug.Log("url de l'api (prod) : " + apiUrl);
-#endif        
+#endif
+
         LoadAndSaveData.instance.LoadUserKeys();
+
+
+        StartCoroutine(GetHealthCheckServer());
+
         if (publicKey == "" || privateKey == "")
         {
-            await this.GetNewUserAndLogin();
+            StartCoroutine(GetNewUserAndLogin());
         }
         else
         {
-            await this.Login();
+            StartCoroutine(Login());
         }
-        await this.GetHealthCheckServer();
     }
 
     public void Update()
     {
-        if (!logedIn) return;
+        if (!logedIn)
+        {
+            return;
+        }
         if (this.queue.Count > 0)
         {
             NetworkRequest request = (NetworkRequest)this.queue.Dequeue();
+            Debug.Log("request " + request.request);
             switch (request.request)
             {
                 case NetworkRequest.GET_USER_ITEMS:
-                    Task task = Task.Run(async () =>
-                    {
-                        await GetUserItems();
-                    });
+                    Debug.Log("request GetUserItems");
+                    StartCoroutine(GetUserItems());
+                    break;
+
+                case NetworkRequest.ADD_USER_ITEMS:
+                    Debug.Log("request RemoveUserItems");
+                    StartCoroutine(AddUserItems(request.parameters[0]));
+                    break;
+
+                case NetworkRequest.REMOVE_USER_ITEMS:
+                    Debug.Log("request RemoveUserItems");
+                    StartCoroutine(RemoveUserItems(request.parameters[0]));
+                    break;
+                case NetworkRequest.SEND_EXPEDITION:
+                    Debug.Log("request SendExpedition");
+                    StartCoroutine(SendExpedition(request.parameters[0]));
                     break;
                 default:
                     break;
@@ -74,118 +94,184 @@ public class NetworkManager : MonoBehaviour
 
     public void AddRequest(NetworkRequest request)
     {
+        Debug.Log("add request " + request + " | " + this.queue);
         this.queue.Enqueue(request);
     }
 
-    public async Task GetHealthCheckServer()
+    IEnumerator GetHealthCheckServer()
     {
-        string responseBody = "";
-        try
+        Loader.instance.SetLoading(true);
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(apiUrl + "/healthcheck"))
         {
-            HttpResponseMessage response = await client.GetAsync(apiUrl + "/healthcheck");
-            response.EnsureSuccessStatusCode();
-            responseBody = await response.Content.ReadAsStringAsync();
+            yield return webRequest.SendWebRequest();
 
-            Debug.Log(responseBody);
-        }
-        catch (HttpRequestException e)
-        {
-            Debug.Log("\nException Caught! healthcheck");
-            Debug.Log("Message : " + e.Message);
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+                serverInfos.text = webRequest.error;
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+                ServerInfos infos = JsonConvert.DeserializeObject<ServerInfos>(webRequest.downloadHandler.text);
+                serverInfos.text = "Version serveur : " + infos.version;
+            }
+            Loader.instance.SetLoading(false);
         }
     }
 
-    public async Task GetNewUserAndLogin()
+    IEnumerator GetNewUserAndLogin()
     {
-        string responseBody = "";
-        try
-        {
-            HttpResponseMessage response = await client.GetAsync(apiUrl + "/user/create");
-            response.EnsureSuccessStatusCode();
-            responseBody = await response.Content.ReadAsStringAsync();
+        Loader.instance.SetLoading(true);
 
-            Debug.Log(responseBody);
-        }
-        catch (HttpRequestException e)
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(apiUrl + "/user/create"))
         {
-            Debug.Log("\nException Caught! GetNewUserAndLogin");
-            Debug.Log("Message : " + e.Message);
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+                User user = JsonConvert.DeserializeObject<User>(webRequest.downloadHandler.text);
+                NetworkManager.instance.publicKey = user.publicKey.ToString();
+                NetworkManager.instance.privateKey = user.privateKey.ToString();
+                Inventory.instance.CurrentMoney = user.money;
+                LoadAndSaveData.instance.SaveUserKeys();
+                client.DefaultRequestHeaders.Add("X-PRIVATE-KEY", NetworkManager.instance.privateKey);
+                logedIn = true;
+            }
+            Loader.instance.SetLoading(false);
         }
-        User user = JsonConvert.DeserializeObject<User>(responseBody);
-        NetworkManager.instance.publicKey = user.publicKey.ToString();
-        NetworkManager.instance.privateKey = user.privateKey.ToString();
-        Inventory.instance.CurrentMoney = user.money;
-        LoadAndSaveData.instance.SaveUserKeys();
-        client.DefaultRequestHeaders.Add("X-PRIVATE-KEY", NetworkManager.instance.privateKey);
-        logedIn = true;
     }
 
-    public async Task Login()
+    IEnumerator Login()
     {
-        string responseBody = "";
-        client.DefaultRequestHeaders.Add("X-PRIVATE-KEY", privateKey);
-        try
-        {
-            HttpResponseMessage response = await client.GetAsync(String.Format(apiUrl + "/login/{0}", this.publicKey));
-            response.EnsureSuccessStatusCode();
-            responseBody = await response.Content.ReadAsStringAsync();
+        Loader.instance.SetLoading(true);
 
-            Debug.Log(responseBody);
-        }
-        catch (HttpRequestException e)
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(String.Format(apiUrl + "/login/{0}", this.publicKey)))
         {
-            Debug.Log("\nException Caught! Login " + String.Format(apiUrl + "/login/{0}", this.publicKey));
-            Debug.Log("Message : " + e.Message);
-            return;
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", privateKey);
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+                User user = JsonConvert.DeserializeObject<User>(webRequest.downloadHandler.text);
+                Debug.Log("user : " + user);
+                Inventory.instance.CurrentMoney = user.money;
+                logedIn = true;
+                Loader.instance.SetLoading(false);
+            }
         }
-        User user = JsonConvert.DeserializeObject<User>(responseBody);
-        Debug.Log("user : " + user);
-        Inventory.instance.CurrentMoney = user.money;
-        logedIn = true;
     }
 
-    public async Task GetUserItems()
+    IEnumerator GetUserItems()
     {
-        string responseBody = "";
-        try
+        Loader.instance.SetLoading(true);
+
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(String.Format(apiUrl + "/user/{0}/items", this.publicKey)))
         {
-            Debug.Log("request items : " + String.Format(apiUrl + "/user/{0}/items", this.publicKey));
-            HttpResponseMessage response = await client.GetAsync(String.Format(apiUrl + "/user/{0}/items", this.publicKey));
-            response.EnsureSuccessStatusCode();
-            responseBody = await response.Content.ReadAsStringAsync();
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", privateKey);
+            yield return webRequest.SendWebRequest();
 
-            Inventory.instance.initialItemLoaded = responseBody;
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
 
-            //synchronisation avec Iventory
-            Inventory.instance.loadingItems = false;
+                List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
+                foreach (ItemAPI it in itemsFromJSON ?? Enumerable.Empty<ItemAPI>())
+                {
+                    Item myItem = Item.CreateItemAPI(it);
+                    Inventory.instance.AddItem(myItem);
+                }
+
+                Loader.instance.SetLoading(false);
+            }
         }
-        catch (HttpRequestException e)
-        {
-            Debug.Log("\nException Caught GetUserItems ! " + String.Format(apiUrl + "/user/{0}/items", this.publicKey));
-            Debug.Log("Message : " + e.Message);
-        }
-
     }
 
-    public async Task AddUserItems(string items)
+    IEnumerator AddUserItems(string items)
     {
-        Debug.Log("list of the item to store : " + items);
-        string responseBody = "";
-        try
+        Loader.instance.SetLoading(true);
+        using (UnityWebRequest webRequest = UnityWebRequest.Put(String.Format(apiUrl + "/user/{0}/items", this.publicKey), items))
         {
-            StringContent data = new StringContent(items, Encoding.UTF8, "application/json");
+            //TODO: remove this hack and use post before
+            webRequest.method = "POST";
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", privateKey);
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+            yield return webRequest.SendWebRequest();
 
-            HttpResponseMessage response = await client.PostAsync(String.Format(apiUrl + "/user/{0}/items", this.publicKey), data);
-            response.EnsureSuccessStatusCode();
-            responseBody = await response.Content.ReadAsStringAsync();
-
-            Inventory.instance.itemToAdd = responseBody;
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+                List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
+                foreach (ItemAPI it in itemsFromJSON)
+                {
+                    Item myItem = Item.CreateItemAPI(it);
+                    Inventory.instance.AddItem(myItem);
+                }
+                Loader.instance.SetLoading(false);
+            }
         }
-        catch (HttpRequestException e)
+    }
+    IEnumerator RemoveUserItems(string items)
+    {
+        Loader.instance.SetLoading(true);
+        using (UnityWebRequest webRequest = UnityWebRequest.Put(String.Format(apiUrl + "/user/{0}/sellitems", this.publicKey), items))
         {
-            Debug.Log("\nException Caught!");
-            Debug.Log("Message : " + e.Message);
-        }
+            //TODO: remove this hack and use post before
+            webRequest.method = "POST";
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", privateKey);
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+            yield return webRequest.SendWebRequest();
 
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+                Loader.instance.SetLoading(false);
+            }
+        }
+    }
+
+    IEnumerator SendExpedition(string expedition)
+    {
+        Loader.instance.SetLoading(true);
+        using (UnityWebRequest webRequest = UnityWebRequest.Put(String.Format(apiUrl + "/user/{0}/expedition", this.publicKey), expedition))
+        {
+            //TODO: remove this hack and use post before
+            webRequest.method = "POST";
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", privateKey);
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+            }
+            Loader.instance.SetLoading(false);
+        }
     }
 }

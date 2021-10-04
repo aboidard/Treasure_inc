@@ -80,7 +80,7 @@ public class SendExpeditionPanel : Panel
             Debug.Log("location button Event : " + locationButtonSelected.locationEvent[0]);
         }
         Expedition expedition = ExpeditionManager.instance.SendExpedition(location, floor);
-        //MessageManager.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
+        //MessagePanel.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
         DestroyGridLocation();
         Close();
     }

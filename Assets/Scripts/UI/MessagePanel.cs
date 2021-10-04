@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MessageManager : MonoBehaviour
+public class MessagePanel : MonoBehaviour
 {
-    public static MessageManager instance;
+    public static MessagePanel instance;
     public Text messageTitle;
     public Text messageText;
     public GameObject messagePanel;

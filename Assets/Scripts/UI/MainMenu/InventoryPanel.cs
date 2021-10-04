@@ -78,18 +78,19 @@ public class InventoryPanel : Panel
             }
         }
 
+        if (listToSell.Count == 0) return;
         var cost = 0;
         var nb = 0;
+        Inventory.instance.RemoveItemsAndPersist(listToSell);
         for (int i = 0; i < listToSell.Count; i++)
         {
             Inventory.instance.AddMoney(listToSell[i].price);
             cost += listToSell[i].price;
-            Inventory.instance.Items.Remove(listToSell[i]);
             nb++;
         }
         if (nb > 0)
         {
-            MessageManager.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
+            MessagePanel.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
             ToggleSellMode();
             Close();
         }

@@ -11,7 +11,7 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     public GameObject pickaxePrefab;
     public GameObject border;
     public GameObject digCostText;
-    public int digCost = 100;
+    public int digCost = 0;
     public float digTime = 0.2f;
     private bool isClicked = false;
 

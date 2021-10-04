@@ -17,6 +17,11 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
+    private void Start()
+    {
+        Inventory.instance.UpdateMoneyUI();
+    }
+
     public void FixedUpdate()
     {
         DebugInfo.text = "Time.fixedDeltaTime : " + Time.fixedDeltaTime;
