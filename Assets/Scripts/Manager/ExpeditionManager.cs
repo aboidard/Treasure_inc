@@ -97,6 +97,7 @@ public class ExpeditionManager : MonoBehaviour
         expedition.location = location;
         expedition.nbTtotalFloor = floor;
         expedition.panelRun = Instantiate(expeditionPanelPrefab, expeditionsPanelGrid.transform);
+        //expedition.panelRun.transform.SetParent(expeditionsPanelGrid.transform, true);
         expedition.panelRun.GetComponent<ExpeditionRunPanel>().expedition = expedition;
         expedition.Init();
         expeditionList.Add(expedition);

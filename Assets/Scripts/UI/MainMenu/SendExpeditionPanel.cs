@@ -119,5 +119,6 @@ public class SendExpeditionPanel : Panel
     protected override void WillShow()
     {
         CreateGridLocation();
+        UIManager.instance.setCameraPosition(CameraMovement.POSITION_SEND);
     }
 }

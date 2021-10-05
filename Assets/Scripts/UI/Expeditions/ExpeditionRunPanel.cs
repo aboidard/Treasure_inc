@@ -2,12 +2,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 public class ExpeditionRunPanel : MonoBehaviour
 {
     public Expedition expedition;
     public int value = 0;
-    public int valueToReach;
+    public int increment = 100;
+    public int valueToReach = 1000;
     public float initialPosition;
     public bool endMiniGame = false;
     public GameObject crewViewport;
@@ -15,8 +17,6 @@ public class ExpeditionRunPanel : MonoBehaviour
     private GameObject crewMember;
     public GameObject expeditionRunPanel;
     public Image touchImage;
-    public Sprite chestClose;
-    public Sprite chestOpen;
     public GameObject targetViewport;
     private Event target;
     public Event[] targetAvailableList;
@@ -26,7 +26,8 @@ public class ExpeditionRunPanel : MonoBehaviour
 
     private void Start()
     {
-        float panelWidth = expeditionRunPanel.GetComponent<RectTransform>().sizeDelta.x;
+        float dist = Vector3.Distance(crewViewport.transform.position, targetViewport.transform.position);
+        increment = (int)Math.Round(increment * dist / valueToReach);
         crewMember = Instantiate(crewMemberPrefab, crewViewport.transform);
         crewMember.transform.SetSiblingIndex(0);
         initialPosition = crewMember.transform.position.x;
@@ -37,9 +38,8 @@ public class ExpeditionRunPanel : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (value >= 1 && !endMiniGame)
+        if (!endMiniGame)
         {
-            value -= 1;
             UpdateCrewPosition();
         }
         if (value >= valueToReach && !endMiniGame)
@@ -71,14 +71,13 @@ public class ExpeditionRunPanel : MonoBehaviour
         //float smoothTime = 0.3F;
         Vector3 targetPosition = new Vector3(initialPosition + value, crewViewport.transform.position.y, 0);
         crewViewport.transform.position = targetPosition; //Vector3.SmoothDamp(transform.position, targetPosition , ref velocity, smoothTime);
-
         crewMember.transform.position = crewViewport.transform.position;
     }
 
     public void Touch()
     {
         if (endMiniGame) return;
-        value += 100;
+        value += increment;
         displayTuto = false;
         UpdateCrewPosition();
     }

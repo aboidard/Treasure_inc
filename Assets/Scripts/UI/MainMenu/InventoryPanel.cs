@@ -50,6 +50,8 @@ public class InventoryPanel : Panel
         float width = listObject.GetComponent<RectTransform>().rect.width;
         Vector2 newSize = new Vector2(width / 3, width / 3);
         listObject.GetComponent<GridLayoutGroup>().cellSize = newSize;
+
+        UIManager.instance.setCameraPosition(CameraMovement.POSITION_INVENTORY);
     }
 
     public void ToggleSellMode()

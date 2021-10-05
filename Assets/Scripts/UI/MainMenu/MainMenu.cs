@@ -24,6 +24,7 @@ public class MainMenu : MonoBehaviour
     {
         creditsWindow.SetActive(true);
     }
+
     public void CloseCredit()
     {
         creditsWindow.SetActive(false);
@@ -33,4 +34,5 @@ public class MainMenu : MonoBehaviour
     {
         Application.Quit();
     }
+
 }

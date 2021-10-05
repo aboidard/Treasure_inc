@@ -13,4 +13,9 @@ public class TeamPanel : Panel
         instance = this;
     }
 
+    protected override void WillShow()
+    {
+        UIManager.instance.setCameraPosition(CameraMovement.POSITION_CREW);
+    }
+
 }

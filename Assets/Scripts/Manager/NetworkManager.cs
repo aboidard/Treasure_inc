@@ -108,13 +108,20 @@ public class NetworkManager : MonoBehaviour
             if (webRequest.result == UnityWebRequest.Result.ConnectionError)
             {
                 Debug.Log("Error: " + webRequest.error);
-                serverInfos.text = webRequest.error;
+                if (serverInfos != null)
+                {
+                    serverInfos.text = webRequest.error;
+                }
             }
             else
             {
                 Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
                 ServerInfos infos = JsonConvert.DeserializeObject<ServerInfos>(webRequest.downloadHandler.text);
-                serverInfos.text = "Version serveur : " + infos.version;
+
+                if (serverInfos != null)
+                {
+                    serverInfos.text = "Version serveur : " + infos.version;
+                }
             }
             Loader.instance.SetLoading(false);
         }
