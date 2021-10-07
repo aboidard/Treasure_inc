@@ -7,10 +7,12 @@ using System;
 public class ExpeditionRunPanel : MonoBehaviour
 {
     public Expedition expedition;
-    public int value = 0;
-    public int increment = 100;
-    public int valueToReach = 1000;
-    public float initialPosition;
+    //public int value = 0;
+    //public int increment;
+    //public int valueToReach;
+    //public float initialPosition;
+
+    public Rigidbody2D rb;
     public bool endMiniGame = false;
     public GameObject crewViewport;
     public GameObject crewMemberPrefab;
@@ -18,19 +20,20 @@ public class ExpeditionRunPanel : MonoBehaviour
     public GameObject expeditionRunPanel;
     public Image touchImage;
     public GameObject targetViewport;
+    private GameObject Background;
     private Event target;
     public Event[] targetAvailableList;
     public Text title;
     public bool displayTuto = true;
+    public float walkSpeed = 100f;
 
 
     private void Start()
     {
-        float dist = Vector3.Distance(crewViewport.transform.position, targetViewport.transform.position);
-        increment = (int)Math.Round(increment * dist / valueToReach);
         crewMember = Instantiate(crewMemberPrefab, crewViewport.transform);
+        Background = Instantiate(BackgroundDatabase.instance.PickBackground(Biome.MINE), this.transform);
+        Background.transform.SetSiblingIndex(0);
         crewMember.transform.SetSiblingIndex(0);
-        initialPosition = crewMember.transform.position.x;
 
         target = EventManager.instance.GenerateRandomEvent(targetAvailableList, targetViewport);
         target.transform.position = targetViewport.transform.position;
@@ -42,11 +45,11 @@ public class ExpeditionRunPanel : MonoBehaviour
         {
             UpdateCrewPosition();
         }
-        if (value >= valueToReach && !endMiniGame)
+        if (targetViewport.GetComponent<EventTrigger>().isInRange && !endMiniGame)
         {
+            rb.velocity = Vector2.zero;
             target.Reach();
             expedition.items.AddRange(target.GetReward());
-            touchImage.enabled = false;
             endMiniGame = true;
             StartCoroutine(WaitForEnding());
         }
@@ -64,20 +67,14 @@ public class ExpeditionRunPanel : MonoBehaviour
 
     public void UpdateCrewPosition()
     {
-        // Vector3 targetPosition = new Vector3(initialPosition + value, crewMember.transform.position.y, 0);
-        // crewMember.transform.position = targetPosition;
-
-        Vector3 velocity = Vector3.zero;
-        //float smoothTime = 0.3F;
-        Vector3 targetPosition = new Vector3(initialPosition + value, crewViewport.transform.position.y, 0);
-        crewViewport.transform.position = targetPosition; //Vector3.SmoothDamp(transform.position, targetPosition , ref velocity, smoothTime);
         crewMember.transform.position = crewViewport.transform.position;
     }
 
     public void Touch()
     {
         if (endMiniGame) return;
-        value += increment;
+        //value += increment;
+        rb.AddForce(new Vector2(walkSpeed, 0f));
         displayTuto = false;
         UpdateCrewPosition();
     }

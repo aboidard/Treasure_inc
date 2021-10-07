@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2084600284670524234}
   - component: {fileID: 2084600284670524233}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Loader
   m_TagString: Loader
   m_Icon: {fileID: 0}
@@ -63,7 +63,7 @@ GameObject:
   - component: {fileID: 2084600285233677843}
   - component: {fileID: 2084600285233677844}
   - component: {fileID: 2084600285233677842}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Loader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -157,7 +157,7 @@ GameObject:
   - component: {fileID: 2084600285571965020}
   - component: {fileID: 2084600285571965018}
   - component: {fileID: 2084600285571965019}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -232,7 +232,7 @@ GameObject:
   - component: {fileID: 2084600286545902789}
   - component: {fileID: 2084600286545902787}
   - component: {fileID: 2084600286545902788}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Connect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -255,7 +255,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.84159267, y: 0.102282055}
   m_AnchorMax: {x: 0.9907778, y: 0.11485471}
-  m_AnchoredPosition: {x: -113.2655, y: 14.620117}
+  m_AnchoredPosition: {x: -113.26538, y: 14.620117}
   m_SizeDelta: {x: 119.8007, y: 26.4401}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2084600286545902787
