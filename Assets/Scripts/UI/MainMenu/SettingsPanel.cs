@@ -18,5 +18,7 @@ public class SettingsPanel : Panel
     protected override void WillShow()
     {
         idUtilisateur.text = NetworkManager.instance.publicKey;
+
+        UIManager.instance.setCameraPosition(CameraMovement.POSITION_SETTINGS);
     }
 }

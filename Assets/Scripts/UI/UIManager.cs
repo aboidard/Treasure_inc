@@ -5,6 +5,8 @@ public class UIManager : MonoBehaviour
 
     public Panel[] panels;
 
+    public GameObject mainCamera;
+
     public static UIManager instance;
     void Awake()
     {
@@ -22,5 +24,10 @@ public class UIManager : MonoBehaviour
         {
             panel.Close();
         }
+    }
+
+    public void setCameraPosition(int position)
+    {
+        mainCamera.GetComponent<CameraMovement>().currentPosition = position;
     }
 }
