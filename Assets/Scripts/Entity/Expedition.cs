@@ -4,33 +4,24 @@ using UnityEngine;
 public class Expedition
 {
     public string expeditionName;
-    public float difficulty;
-    public int distance;
     public Location location;
-    public List<CrewMember> crewMembers;
-    public List<Item> items;
+    public List<CrewMember> crewMembers = new List<CrewMember>();
+    public List<Item> items = new List<Item>();
     public int nbTtotalFloor;
-    public int currentFloor;
+    public int currentFloor = 1;
     public GameObject panelRun;
+    public GameObject positionInGrid;
     public bool over = false;
     public bool floorOver = false;
 
     public void Init()
     {
-        this.items = new List<Item>();
-        this.crewMembers = new List<CrewMember>();
-        this.currentFloor = 1;
-        UpdateTitle();
+        panelRun.GetComponent<ExpeditionRunPanel>().updateUI();
     }
 
     public override string ToString()
     {
         return "\"" + expeditionName + "\" (" + location.name + ") : " + string.Join("\n", items);
-    }
-
-    public void UpdateTitle()
-    {
-        panelRun.GetComponent<ExpeditionRunPanel>().title.text = this.expeditionName + " - étage " + this.currentFloor + "/" + this.nbTtotalFloor;
     }
 
     public bool IsOver()

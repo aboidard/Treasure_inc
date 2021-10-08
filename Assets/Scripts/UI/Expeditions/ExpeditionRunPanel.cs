@@ -7,11 +7,6 @@ using System;
 public class ExpeditionRunPanel : MonoBehaviour
 {
     public Expedition expedition;
-    //public int value = 0;
-    //public int increment;
-    //public int valueToReach;
-    //public float initialPosition;
-
     public Rigidbody2D rb;
     public bool endMiniGame = false;
     public GameObject crewViewport;
@@ -24,9 +19,10 @@ public class ExpeditionRunPanel : MonoBehaviour
     private Event target;
     public Event[] targetAvailableList;
     public Text title;
+    public Text lootNumberText;
     public bool displayTuto = true;
     public float walkSpeed = 100f;
-
+    public int size = ExpeditionGridPanel.SIZE_S;
 
     private void Start()
     {
@@ -34,9 +30,11 @@ public class ExpeditionRunPanel : MonoBehaviour
         Background = Instantiate(BackgroundDatabase.instance.PickBackground(Biome.MINE), this.transform);
         Background.transform.SetSiblingIndex(0);
         crewMember.transform.SetSiblingIndex(0);
+        lootNumberText.text = "0";
 
         target = EventManager.instance.GenerateRandomEvent(targetAvailableList, targetViewport);
         target.transform.position = targetViewport.transform.position;
+        updateUI();
     }
 
     private void FixedUpdate()
@@ -51,6 +49,7 @@ public class ExpeditionRunPanel : MonoBehaviour
             target.Reach();
             expedition.items.AddRange(target.GetReward());
             endMiniGame = true;
+            updateUI();
             StartCoroutine(WaitForEnding());
         }
         if (displayTuto) touchImage.enabled = true;
@@ -70,12 +69,23 @@ public class ExpeditionRunPanel : MonoBehaviour
         crewMember.transform.position = crewViewport.transform.position;
     }
 
+    public void updateUI()
+    {
+        title.text = expedition.expeditionName + " - étage " + expedition.currentFloor + "/" + expedition.nbTtotalFloor;
+        Debug.Log("lootNumberText " + lootNumberText + " expedition.items " + expedition.items);
+        lootNumberText.text = expedition.items.Count.ToString();
+    }
+
     public void Touch()
     {
         if (endMiniGame) return;
-        //value += increment;
         rb.AddForce(new Vector2(walkSpeed, 0f));
         displayTuto = false;
         UpdateCrewPosition();
+    }
+    public void SetExpedition(Expedition expedition)
+    {
+        this.expedition = expedition;
+        updateUI();
     }
 }

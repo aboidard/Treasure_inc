@@ -16,7 +16,7 @@ public class ExpeditionManager : MonoBehaviour
     {
         if (instance != null)
         {
-            Debug.LogWarning("plus d'une instance d'ExpeditionManager dans la scène");
+            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
             return;
         }
         instance = this;
@@ -25,12 +25,6 @@ public class ExpeditionManager : MonoBehaviour
     void Start()
     {
         expeditionList = new List<Expedition>();
-
-        //init
-        for (int i = 0; i < expeditionsPanelGrid.transform.childCount; i++)
-        {
-            Destroy(expeditionsPanelGrid.transform.GetChild(i).gameObject);
-        }
     }
 
     private void FixedUpdate()
@@ -60,13 +54,14 @@ public class ExpeditionManager : MonoBehaviour
                     expeditionToRemove.Add(expedition);
                     Destroy(expedition.panelRun);
                 }
+                // si l'expedition n'est pas terminée on continu dans un autre étage
                 else
                 {
                     Destroy(expedition.panelRun);
-                    expedition.panelRun = Instantiate(expeditionPanelPrefab, expeditionsPanelGrid.transform);
+                    expedition.panelRun = Instantiate(expeditionPanelPrefab, expedition.positionInGrid.transform);
                     expedition.panelRun.GetComponent<ExpeditionRunPanel>().expedition = expedition;
                     expedition.floorOver = false;
-                    expedition.UpdateTitle();
+                    expedition.panelRun.GetComponent<ExpeditionRunPanel>().updateUI();
                 }
             }
         }
@@ -90,14 +85,16 @@ public class ExpeditionManager : MonoBehaviour
         int cost = ComputeCost(floor, location);
 
         if (Inventory.instance.CurrentMoney < cost) throw new NotEnoughtMoneyException();
+        if (expeditionList.Count >= 5) throw new TooMuchExpeditionsException();
 
         Inventory.instance.SubtractMoney(cost);
         Expedition expedition = new Expedition();
         expedition.expeditionName = StringGenerator.ExpeditionNameGenerator();
         expedition.location = location;
         expedition.nbTtotalFloor = floor;
-        expedition.panelRun = Instantiate(expeditionPanelPrefab, expeditionsPanelGrid.transform);
-        expedition.panelRun.GetComponent<ExpeditionRunPanel>().expedition = expedition;
+        expedition.positionInGrid = ExpeditionGridPanel.instance.GetFreeSpot(ExpeditionGridPanel.SIZE_S);
+        expedition.panelRun = Instantiate(expeditionPanelPrefab, expedition.positionInGrid.transform);
+        expedition.panelRun.GetComponent<ExpeditionRunPanel>().SetExpedition(expedition);
         expedition.Init();
         expeditionList.Add(expedition);
 
