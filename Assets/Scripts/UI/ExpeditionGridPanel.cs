@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ExpeditionGridPanel : MonoBehaviour
 {
@@ -27,6 +28,7 @@ public class ExpeditionGridPanel : MonoBehaviour
         {
             if (position.transform.childCount > 0) Destroy(position.transform.GetChild(0).gameObject);
         });
+
     }
 
     public bool isFreeSpot(int size)

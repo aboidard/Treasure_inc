@@ -17,7 +17,11 @@ public class NetworkManager : MonoBehaviour
     private string apiUrl;
     public bool logedIn = false;
     private Queue queue = new Queue();
-    public Text serverInfos;
+    public String serverVersion;
+
+    //event
+    public delegate void LoadInfosAction();
+    public static event LoadInfosAction OnLoadInfos;
 
 
     private void Awake()
@@ -41,7 +45,7 @@ public class NetworkManager : MonoBehaviour
 #endif
 
         LoadAndSaveData.instance.LoadUserKeys();
-
+        OnLoadInfos();
 
         StartCoroutine(GetHealthCheckServer());
 
@@ -108,21 +112,15 @@ public class NetworkManager : MonoBehaviour
             if (webRequest.result == UnityWebRequest.Result.ConnectionError)
             {
                 Debug.Log("Error: " + webRequest.error);
-                if (serverInfos != null)
-                {
-                    serverInfos.text = webRequest.error;
-                }
+                MessagePanel.instance.DisplayMessage("Erreur !", webRequest.error);
             }
             else
             {
                 Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
                 ServerInfos infos = JsonConvert.DeserializeObject<ServerInfos>(webRequest.downloadHandler.text);
-
-                if (serverInfos != null)
-                {
-                    serverInfos.text = "Version serveur : " + infos.version;
-                }
+                serverVersion = infos.version;
             }
+            OnLoadInfos();
             Loader.instance.SetLoading(false);
         }
     }
@@ -280,5 +278,18 @@ public class NetworkManager : MonoBehaviour
             }
             Loader.instance.SetLoading(false);
         }
+    }
+    private void OnEnable()
+    {
+        NetworkManager.OnLoadInfos += MajInfosUI;
+    }
+    private void OnDisabled()
+    {
+        NetworkManager.OnLoadInfos -= MajInfosUI;
+    }
+
+    private void MajInfosUI()
+    {
+
     }
 }

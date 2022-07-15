@@ -2185,7 +2185,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5600782689874991207}
   - component: {fileID: 2053954363554527386}
-  - component: {fileID: 6059044141363245224}
   m_Layer: 5
   m_Name: BackgroundMine3
   m_TagString: Untagged
@@ -2269,19 +2268,6 @@ MonoBehaviour:
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
---- !u!114 &6059044141363245224
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8384239026671510054}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5afb8a5e62891e4ca5f9a7791f25fbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  grid: {fileID: 8384239026671510054}
 --- !u!1 &8477163518510059839
 GameObject:
   m_ObjectHideFlags: 0
