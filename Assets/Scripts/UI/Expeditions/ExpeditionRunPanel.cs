@@ -21,7 +21,8 @@ public class ExpeditionRunPanel : MonoBehaviour
     public Text title;
     public Text lootNumberText;
     public bool displayTuto = true;
-    public float walkSpeed = 100f;
+    public float walkSpeed = 7000f;
+    public float initialMagnitude = 140f;
     public int size = ExpeditionGridPanel.SIZE_S;
 
     private void Start()
@@ -34,6 +35,8 @@ public class ExpeditionRunPanel : MonoBehaviour
 
         target = EventManager.instance.GenerateRandomEvent(targetAvailableList, targetViewport);
         target.transform.position = targetViewport.transform.position;
+        initialMagnitude = 140f;
+        rb.AddForce(new Vector2(walkSpeed, 0f));
         updateUI();
     }
 
@@ -67,6 +70,13 @@ public class ExpeditionRunPanel : MonoBehaviour
     public void UpdateCrewPosition()
     {
         crewMember.transform.position = crewViewport.transform.position;
+        //if the crew velocity is > walkSpeed, then the velocity is gradualy reduced to walkSpeed
+        Debug.Log(rb.velocity.magnitude + " : " + initialMagnitude + "=" + (rb.velocity.magnitude > initialMagnitude));
+
+        if (rb.velocity.magnitude > initialMagnitude)
+        {
+            rb.AddForce(new Vector2(-walkSpeed/60, 0f));
+        }
     }
 
     public void updateUI()
@@ -83,6 +93,7 @@ public class ExpeditionRunPanel : MonoBehaviour
         displayTuto = false;
         UpdateCrewPosition();
     }
+
     public void SetExpedition(Expedition expedition)
     {
         this.expedition = expedition;

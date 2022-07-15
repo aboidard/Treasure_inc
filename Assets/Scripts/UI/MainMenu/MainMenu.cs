@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
     public GameObject settingsWindow;
     public GameObject creditsWindow;
+    public Text infos;
 
     public void StartGame()
     {
@@ -35,4 +37,22 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
+    private void OnEnable()
+    {
+        NetworkManager.OnLoadInfos += MajInfosUI;
+    }
+    private void OnDisabled()
+    {
+        NetworkManager.OnLoadInfos -= MajInfosUI;
+    }
+
+    void MajInfosUI()
+    {
+        infos.text = "Identifiant : " + NetworkManager.instance.publicKey
+        + "\nVersion : " + Application.version;
+        if (null != NetworkManager.instance.serverVersion)
+        {
+            infos.text += "\nServeur : " + NetworkManager.instance.serverVersion;
+        }
+    }
 }

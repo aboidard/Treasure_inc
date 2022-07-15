@@ -91,6 +91,7 @@ public class Inventory : MonoBehaviour
         set
         {
             currentMoney = value;
+            UpdateMoneyUI();
         }
     }
     public List<Item> Items => items;
