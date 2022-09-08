@@ -9210,7 +9210,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Identifiant : \nVersion :"
+  m_Text: "Identifiant : \nVersion :\nserver :"
 --- !u!222 &1923251624
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -27,7 +27,7 @@ public class Inventory : MonoBehaviour
     private void Start()
     {
         //lancer une tache de récupération des items du user
-        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.GET_USER_ITEMS));
+        //NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.GET_USER_ITEMS));
     }
 
     public void UpdateMoneyUI()

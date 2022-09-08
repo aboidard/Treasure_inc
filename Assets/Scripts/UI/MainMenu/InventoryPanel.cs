@@ -7,12 +7,14 @@ public class InventoryPanel : Panel
     public GameObject listObject;
     private List<ObjectPanel> listObjectPanel;
     public GameObject objectPanelPrefab;
+    public AutoSelectPanel autoSelectPanel;
     public static InventoryPanel instance;
     public Text title;
     public bool sellMode = false;
     public GameObject sellModeButton;
     public GameObject sellYesButton;
     public GameObject sellNoButton;
+    public GameObject autoSelectButton;
 
 
     void Awake()
@@ -29,6 +31,7 @@ public class InventoryPanel : Panel
         sellModeButton.SetActive(true);
         sellNoButton.SetActive(false);
         sellYesButton.SetActive(false);
+        autoSelectButton.SetActive(false);
         //init
         for (int i = 0; i < listObject.transform.childCount; i++)
         {
@@ -61,9 +64,11 @@ public class InventoryPanel : Panel
         sellModeButton.SetActive(!sellModeButton.activeInHierarchy);
         sellNoButton.SetActive(!sellModeButton.activeInHierarchy);
         sellYesButton.SetActive(!sellModeButton.activeInHierarchy);
+        autoSelectButton.SetActive(!sellModeButton.activeInHierarchy);
         foreach (ObjectPanel item in listObjectPanel)
         {
             Toggle toggle = item.deleteToggle;
+            toggle.isOn = false;
             toggle.gameObject.SetActive(!sellModeButton.activeInHierarchy);
         }
     }
@@ -95,6 +100,26 @@ public class InventoryPanel : Panel
             MessagePanel.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
             ToggleSellMode();
             Close();
+        }
+    }
+    
+    public void ShowAutoSelect()
+    {
+        autoSelectPanel.ShowAutoSelect();
+    }
+    public void AutoSelect(List<Rarity> listRarityAutoSelect)
+    {
+        for (int i = 0; i < listObject.transform.childCount; i++)
+        {
+            ObjectPanel objectPanel = listObject.transform.GetChild(i).GetComponent<ObjectPanel>();
+            if (listRarityAutoSelect.Contains(objectPanel.item.rarity))
+            {
+                objectPanel.deleteToggle.isOn = true;
+            }
+            else
+            {
+                objectPanel.deleteToggle.isOn = false;
+            }
         }
     }
 }

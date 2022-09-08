@@ -10,7 +10,7 @@ public class MainMenu : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene("MainScene");
+        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN,new string[]{"true"}));
     }
 
     public void Settings()

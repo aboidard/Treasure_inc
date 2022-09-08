@@ -5,7 +5,7 @@ using UnityEngine;
 public class Loader : MonoBehaviour
 {
     public static Loader instance;
-    private bool loading = false;
+    public bool loading = false;
     private GameObject loader;
 
     void Awake()
@@ -19,14 +19,11 @@ public class Loader : MonoBehaviour
         this.loader = GameObject.FindGameObjectsWithTag("Loader")[0];
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        loader.SetActive(loading);
-    }
+
 
     public void SetLoading(bool value)
     {
-        this.loading = value;
+        loading = value;
+        loader.SetActive(loading);
     }
 }

@@ -43,5 +43,9 @@ public class GameManager : MonoBehaviour
             Location location = LocationsDatabase.instance.allLocations.Single(x => x.id == 1);
             ExpeditionManager.instance.SendExpedition(location, 10);
         }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"false"}));
+        }
     }
 }
