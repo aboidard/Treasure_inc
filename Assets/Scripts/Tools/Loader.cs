@@ -19,7 +19,10 @@ public class Loader : MonoBehaviour
         this.loader = GameObject.FindGameObjectsWithTag("Loader")[0];
     }
 
-
+    private void Start()
+    {
+        this.SetLoading(false);
+    }
 
     public void SetLoading(bool value)
     {

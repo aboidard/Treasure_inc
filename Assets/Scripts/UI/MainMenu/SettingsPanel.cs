@@ -17,13 +17,13 @@ public class SettingsPanel : Panel
 
     protected override void WillShow()
     {
-        idUtilisateur.text = NetworkManager.instance.publicKey;
+        idUtilisateur.text = NetworkManager.Instance.publicKey;
 
         UIManager.instance.setCameraPosition(CameraMovement.POSITION_SETTINGS);
     }
 
     public void OnClickSite()
     {
-        Application.OpenURL("https://www.treasure-inc.fr/chest?id=" + NetworkManager.instance.publicKey);
+        Application.OpenURL("https://www.treasure-inc.fr/chest?id=" + NetworkManager.Instance.publicKey);
     }
 }

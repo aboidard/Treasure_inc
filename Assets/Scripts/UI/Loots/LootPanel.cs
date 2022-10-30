@@ -50,7 +50,7 @@ public class LootPanel : MonoBehaviour
             //panel.GetComponents<Button>()[1].onClick.AddListener(delegate{objectPanel.SellItem();});
         }
         
-        Inventory.instance.AddItemsAndPersist(this.items);
+        Inventory.Instance.AddItemsAndPersist(this.items);
     }
 
     // public void SellAll()
@@ -59,7 +59,7 @@ public class LootPanel : MonoBehaviour
     //     var nb = 0;
     //     for (int i = 0; i < this.items.Count; i++)
     //     {
-    //         Inventory.instance.AddMoney(this.items[i].price);
+    //         Inventory.Instance.AddMoney(this.items[i].price);
     //         cost += this.items[i].price;
     //         nb++;
     //     }
@@ -73,7 +73,7 @@ public class LootPanel : MonoBehaviour
 
     // public void TakeAll()
     // {
-    //     Inventory.instance.AddItemsAndPersist(this.items);
+    //     Inventory.Instance.AddItemsAndPersist(this.items);
     //     this.items.Clear();
     //     this.ClosePanel();
     // }

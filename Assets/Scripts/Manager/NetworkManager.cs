@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 public class NetworkManager : MonoBehaviour
 {
-    public static NetworkManager instance;
+    public static NetworkManager _Instance;
     public string publicKey;
     public string privateKey;
     static readonly HttpClient client = new HttpClient();
@@ -34,15 +34,26 @@ public class NetworkManager : MonoBehaviour
     public static event LoadInfosAction OnLoadInfos;
 
 
-    private void Awake()
-    {
-        if (instance != null)
-        {
-            Debug.LogWarning("plus d'une instance de " + this.GetType().Name + " dans la scène");
-            return;
-        }
-        instance = this;
-    }
+	public static NetworkManager Instance
+	{
+		get
+		{
+			if (!_Instance)
+			{
+				// NOTE: read docs to see directory requirements for Resources.Load!
+				var prefab = Resources.Load<GameObject>("Prefabs/System/NetworkManager");
+				// create the prefab in your scene
+				var inScene = Instantiate<GameObject>(prefab);
+				// try find the instance inside the prefab
+				_Instance = inScene.GetComponentInChildren<NetworkManager>();
+				// guess there isn't one, add one
+				if (!_Instance) _Instance = inScene.AddComponent<NetworkManager>();
+				// mark root as DontDestroyOnLoad();
+				DontDestroyOnLoad(_Instance.transform.root.gameObject);
+			}
+			return _Instance;
+		}
+	}
 
     private void Start()
     {
@@ -55,9 +66,6 @@ public class NetworkManager : MonoBehaviour
 #endif
 
         LoadAndSaveData.instance.LoadUserKeys();
-        OnLoadInfos();
-
-        StartCoroutine(GetVersionServer());
     }
 
     public void Update()
@@ -68,42 +76,64 @@ public class NetworkManager : MonoBehaviour
             NetworkRequest request = (NetworkRequest)this.queue.Dequeue();
             Debug.Log("request " + request.request);
 
-            if (!logedIn && request.request != NetworkRequest.LOGIN)
+            if (request.request == NetworkRequest.LOGIN || 
+                request.request == NetworkRequest.VERSION_SERVER)
             {
-                return;
+                OpenRequest(request);
             }
-            switch (request.request)
+            if(logedIn)
             {
-                case NetworkRequest.LOGIN:
-                    Debug.Log("request LOGIN");
-                    if(logedIn) break;
-                        StartCoroutine(Login(Convert.ToBoolean(request.parameters[0])));
-                    break;
-
-                case NetworkRequest.GET_USER_ITEMS:
-                    Debug.Log("request GetUserItems");
-                    StartCoroutine(GetUserItems(false));
-                    break;
-
-                case NetworkRequest.ADD_USER_ITEMS:
-                    Debug.Log("request RemoveUserItems");
-                    StartCoroutine(AddUserItems(request.parameters[0]));
-                    break;
-
-                case NetworkRequest.REMOVE_USER_ITEMS:
-                    Debug.Log("request RemoveUserItems");
-                    StartCoroutine(RemoveUserItems(request.parameters[0]));
-                    break;
-
-                case NetworkRequest.SEND_EXPEDITION:
-                    Debug.Log("request SendExpedition");
-                    StartCoroutine(SendExpedition(request.parameters[0]));
-                    break;
-
-                default:
-                    break;
+                SecureRequest(request);
             }
 
+        }
+    }
+
+    private void OpenRequest(NetworkRequest request)
+    {
+        switch (request.request)
+        {
+            case NetworkRequest.VERSION_SERVER:
+                Debug.Log("request versionServer");
+                StartCoroutine(GetVersionServer());
+                break;
+                
+            case NetworkRequest.LOGIN:
+                Debug.Log("request LOGIN");
+                if(logedIn) break;
+                    StartCoroutine(Login(Convert.ToBoolean(request.parameters[0])));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void SecureRequest(NetworkRequest request)
+    {
+        switch (request.request)
+        {
+            case NetworkRequest.GET_USER_ITEMS:
+                Debug.Log("request GetUserItems");
+                StartCoroutine(GetUserItems(false));
+                break;
+
+            case NetworkRequest.ADD_USER_ITEMS:
+                Debug.Log("request RemoveUserItems");
+                StartCoroutine(AddUserItems(request.parameters[0]));
+                break;
+
+            case NetworkRequest.REMOVE_USER_ITEMS:
+                Debug.Log("request RemoveUserItems");
+                StartCoroutine(RemoveUserItems(request.parameters[0]));
+                break;
+
+            case NetworkRequest.SEND_EXPEDITION:
+                Debug.Log("request SendExpedition");
+                StartCoroutine(SendExpedition(request.parameters[0]));
+                break;
+
+            default:
+                break;
         }
     }
 
@@ -174,12 +204,12 @@ public class NetworkManager : MonoBehaviour
                     User user = JsonConvert.DeserializeObject<User>(webRequest.downloadHandler.text);
                     Debug.Log("user : " + user);
                     if(createUser){
-                        NetworkManager.instance.publicKey = user.publicKey.ToString();
-                        NetworkManager.instance.privateKey = user.privateKey.ToString();
+                        NetworkManager.Instance.publicKey = user.publicKey.ToString();
+                        NetworkManager.Instance.privateKey = user.privateKey.ToString();
                         LoadAndSaveData.instance.SaveUserKeys();
-                        client.DefaultRequestHeaders.Add("X-PRIVATE-KEY", NetworkManager.instance.privateKey);
+                        client.DefaultRequestHeaders.Add("X-PRIVATE-KEY", NetworkManager.Instance.privateKey);
                     }
-                    Inventory.instance.CurrentMoney = user.money;
+                    Inventory.Instance.CurrentMoney = user.money;
                     logedIn = true;
                     StartCoroutine(GetUserItems(changeScene));
                 }
@@ -218,7 +248,7 @@ public class NetworkManager : MonoBehaviour
                 foreach (ItemAPI it in itemsFromJSON ?? Enumerable.Empty<ItemAPI>())
                 {
                     Item myItem = Item.CreateItemAPI(it);
-                    Inventory.instance.AddItem(myItem);
+                    Inventory.Instance.AddItem(myItem);
                 }
 
                 Loader.instance.SetLoading(false);
@@ -250,7 +280,7 @@ public class NetworkManager : MonoBehaviour
                 foreach (ItemAPI it in itemsFromJSON)
                 {
                     Item myItem = Item.CreateItemAPI(it);
-                    Inventory.instance.AddItem(myItem);
+                    Inventory.Instance.AddItem(myItem);
                 }
                 Loader.instance.SetLoading(false);
             }

@@ -16,14 +16,14 @@ public class LoadAndSaveData : MonoBehaviour
 
     public void LoadUserKeys()
     {
-        NetworkManager.instance.publicKey = PlayerPrefs.GetString("publicKey");
-        NetworkManager.instance.privateKey = PlayerPrefs.GetString("privateKey");
+        NetworkManager.Instance.publicKey = PlayerPrefs.GetString("publicKey");
+        NetworkManager.Instance.privateKey = PlayerPrefs.GetString("privateKey");
     }
 
     public void SaveUserKeys()
     {
-        PlayerPrefs.SetString("publicKey", NetworkManager.instance.publicKey);
-        PlayerPrefs.SetString("privateKey", NetworkManager.instance.privateKey);
+        PlayerPrefs.SetString("publicKey", NetworkManager.Instance.publicKey);
+        PlayerPrefs.SetString("privateKey", NetworkManager.Instance.privateKey);
         PlayerPrefs.Save();
     }
 }

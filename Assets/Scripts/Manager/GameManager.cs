@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Inventory.instance.UpdateMoneyUI();
+        Inventory.Instance.UpdateMoneyUI();
     }
 
     public void FixedUpdate()
@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.I))
         {
             Item item = Item.GenerateScriptableItem(1);
-            Inventory.instance.AddItem(item);
+            Inventory.Instance.AddItem(item);
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.L))
         {
-            NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"false"}));
+            NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"false"}));
         }
     }
 }
