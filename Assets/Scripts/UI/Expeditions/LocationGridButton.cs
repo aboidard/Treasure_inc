@@ -65,8 +65,8 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             return;
         }
 
-        if (Inventory.instance.CurrentMoney < digCost) throw new NotEnoughtMoneyException();
-        Inventory.instance.SubtractMoney(digCost);
+        if (Inventory.Instance.CurrentMoney < digCost) throw new NotEnoughtMoneyException();
+        Inventory.Instance.SubtractMoney(digCost);
         isClicked = true;
         //SendExpedition.instance.HideLocationButtons();
         SendExpeditionPanel.instance.locationButtonSelected = this;

@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Inventory.instance.UpdateMoneyUI();
+        Inventory.Instance.UpdateMoneyUI();
     }
 
     public void FixedUpdate()
@@ -36,12 +36,16 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.I))
         {
             Item item = Item.GenerateScriptableItem(1);
-            Inventory.instance.AddItem(item);
+            Inventory.Instance.AddItem(item);
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
             Location location = LocationsDatabase.instance.allLocations.Single(x => x.id == 1);
             ExpeditionManager.instance.SendExpedition(location, 10);
+        }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"false"}));
         }
     }
 }

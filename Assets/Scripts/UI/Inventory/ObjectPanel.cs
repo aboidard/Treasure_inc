@@ -11,7 +11,7 @@ public class ObjectPanel : MonoBehaviour
 
     public void GetItem()
     {
-        // Inventory inventory = Inventory.instance;
+        // Inventory inventory = Inventory.Instance;
         // if(inventory.coinsCount >= item.price)
         // {
         //     inventory.content.Add(item);
@@ -22,7 +22,7 @@ public class ObjectPanel : MonoBehaviour
     }
     public void SellItem()
     {
-        // Inventory inventory = Inventory.instance;
+        // Inventory inventory = Inventory.Instance;
         // if(inventory.coinsCount >= item.price)
         // {
         //     inventory.content.Add(item);

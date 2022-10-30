@@ -84,10 +84,10 @@ public class ExpeditionManager : MonoBehaviour
     {
         int cost = ComputeCost(floor, location);
 
-        if (Inventory.instance.CurrentMoney < cost) throw new NotEnoughtMoneyException();
+        if (Inventory.Instance.CurrentMoney < cost) throw new NotEnoughtMoneyException();
         if (expeditionList.Count >= 5) throw new TooMuchExpeditionsException();
 
-        Inventory.instance.SubtractMoney(cost);
+        Inventory.Instance.SubtractMoney(cost);
         Expedition expedition = new Expedition();
         expedition.expeditionName = StringGenerator.ExpeditionNameGenerator();
         expedition.location = location;
@@ -99,7 +99,7 @@ public class ExpeditionManager : MonoBehaviour
         expeditionList.Add(expedition);
 
         string[] expeditionJson = { JsonConvert.SerializeObject(new ExpeditionAPI(cost)) };
-        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.SEND_EXPEDITION, expeditionJson));
+        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.SEND_EXPEDITION, expeditionJson));
 
         Debug.Log("Expedition send " + expedition);
         return expedition;

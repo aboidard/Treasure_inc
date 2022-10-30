@@ -4,6 +4,8 @@ public class NetworkRequest
     public const int ADD_USER_ITEMS = 2;
     public const int REMOVE_USER_ITEMS = 3;
     public const int SEND_EXPEDITION = 4;
+    public const int LOGIN = 5;
+    public const int VERSION_SERVER = 6;
     public int request;
     public string[] parameters;
 

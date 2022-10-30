@@ -7,27 +7,38 @@ using Newtonsoft.Json;
 
 public class Inventory : MonoBehaviour
 {
-    public static Inventory instance;
+    public static Inventory _Instance;
     [SerializeField]
     private int currentMoney = 0;
     [SerializeField]
     private List<Item> items;
     public Text moneyText;
 
-    void Awake()
-    {
-        if (instance != null)
-        {
-            Debug.LogWarning("plus d'une instance d'Inventory dans la scène");
-            return;
-        }
-        instance = this;
-    }
+	public static Inventory Instance
+	{
+		get
+		{
+			if (!_Instance)
+			{
+				// NOTE: read docs to see directory requirements for Resources.Load!
+				var prefab = Resources.Load<GameObject>("Prefabs/System/Inventory");
+				// create the prefab in your scene
+				var inScene = Instantiate<GameObject>(prefab);
+				// try find the instance inside the prefab
+				_Instance = inScene.GetComponentInChildren<Inventory>();
+				// guess there isn't one, add one
+				if (!_Instance) _Instance = inScene.AddComponent<Inventory>();
+				// mark root as DontDestroyOnLoad();
+				DontDestroyOnLoad(_Instance.transform.root.gameObject);
+			}
+			return _Instance;
+		}
+	}
 
     private void Start()
     {
         //lancer une tache de récupération des items du user
-        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.GET_USER_ITEMS));
+        //NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.GET_USER_ITEMS));
     }
 
     public void UpdateMoneyUI()
@@ -68,7 +79,7 @@ public class Inventory : MonoBehaviour
         }
 
         string[] itemsJson = { JsonConvert.SerializeObject(listItemApi) };
-        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.ADD_USER_ITEMS, itemsJson));
+        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.ADD_USER_ITEMS, itemsJson));
     }
 
     public void RemoveItemsAndPersist(List<Item> itemsToRemove)
@@ -82,7 +93,7 @@ public class Inventory : MonoBehaviour
         }
 
         string[] itemsJson = { JsonConvert.SerializeObject(listItemApi) };
-        NetworkManager.instance.AddRequest(new NetworkRequest(NetworkRequest.REMOVE_USER_ITEMS, itemsJson));
+        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.REMOVE_USER_ITEMS, itemsJson));
     }
 
     public int CurrentMoney

@@ -8,9 +8,14 @@ public class MainMenu : MonoBehaviour
     public GameObject creditsWindow;
     public Text infos;
 
+    private void Start()
+    {
+        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.VERSION_SERVER));
+    }
+
     public void StartGame()
     {
-        SceneManager.LoadScene("MainScene");
+        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"true"}));
     }
 
     public void Settings()
@@ -48,11 +53,11 @@ public class MainMenu : MonoBehaviour
 
     void MajInfosUI()
     {
-        infos.text = "Identifiant : " + NetworkManager.instance.publicKey
+        infos.text = "Identifiant : " + NetworkManager.Instance.publicKey
         + "\nVersion : " + Application.version;
-        if (null != NetworkManager.instance.serverVersion)
+        if (null != NetworkManager.Instance.serverVersion)
         {
-            infos.text += "\nServeur : " + NetworkManager.instance.serverVersion;
+            infos.text += "\nServeur : " + NetworkManager.Instance.serverVersion;
         }
     }
 }

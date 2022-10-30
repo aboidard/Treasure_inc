@@ -86,7 +86,7 @@ public class Item : ScriptableObject
         // AssetDatabase.Refresh();
 
         Item currentItem = ItemsDatabase.instance.allItems.Single(x => x.id == id);
-        Inventory.instance.AddItem(currentItem);
+        Inventory.Instance.AddItem(currentItem);
 
         Debug.Log("création d'un objet : " + currentItem);
         return currentItem;
