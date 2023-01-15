@@ -1,5 +1,10 @@
 {
   "dependencies": {
+    "com.google.android.appbundle": "file:../Assets/Tgz/com.google.android.appbundle-1.8.0.tgz",
+    "com.google.external-dependency-manager": "file:../Assets/Tgz/com.google.external-dependency-manager-1.2.172.tgz",
+    "com.google.play.appupdate": "file:../Assets/Tgz/com.google.play.appupdate-1.8.1.tgz",
+    "com.google.play.common": "file:../Assets/Tgz/com.google.play.common-1.8.1.tgz",
+    "com.google.play.core": "file:../Assets/Tgz/com.google.play.core-1.8.1.tgz",
     "com.unity.2d.animation": "5.2.6",
     "com.unity.2d.pixel-perfect": "4.0.1",
     "com.unity.2d.psdimporter": "4.3.1",

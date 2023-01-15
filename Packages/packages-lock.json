@@ -1,5 +1,43 @@
 {
   "dependencies": {
+    "com.google.android.appbundle": {
+      "version": "file:../Assets/Tgz/com.google.android.appbundle-1.8.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
+    "com.google.external-dependency-manager": {
+      "version": "file:../Assets/Tgz/com.google.external-dependency-manager-1.2.172.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
+    "com.google.play.appupdate": {
+      "version": "file:../Assets/Tgz/com.google.play.appupdate-1.8.1.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.google.play.common": "1.8.1",
+        "com.google.play.core": "1.8.1"
+      }
+    },
+    "com.google.play.common": {
+      "version": "file:../Assets/Tgz/com.google.play.common-1.8.1.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.google.android.appbundle": "1.8.0"
+      }
+    },
+    "com.google.play.core": {
+      "version": "file:../Assets/Tgz/com.google.play.core-1.8.1.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.google.android.appbundle": "1.8.0",
+        "com.google.external-dependency-manager": "1.2.172"
+      }
+    },
     "com.unity.2d.animation": {
       "version": "5.2.6",
       "depth": 0,
