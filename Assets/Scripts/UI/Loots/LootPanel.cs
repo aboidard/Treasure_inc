@@ -26,9 +26,24 @@ public class LootPanel : MonoBehaviour
 
     public void ShowLoot(List<Item> items, string title)
     {
-        this.items = items;
+        int requestId = Inventory.Instance.AddItemsAndPersist(items);
+        //start a coroutine to wait for the request to be done
+        StartCoroutine(WaitForRequest(requestId, title));
+
+    }
+    public IEnumerator<WaitForSeconds> WaitForRequest(int requestId, string title)
+    {
+        NetworkResponseItems response = null;
+        var start = Time.time;
+        while (response == null || Time.time - start < 5)
+        {
+            //response = (NetworkResponseItems)NetworkManager.Instance.GetResponse(requestId);
+            yield return new WaitForSeconds(0.1f);
+        }
+
         OpenPanel();
         lootTitle.text = title;
+        this.items = response.getItems();
 
         //init
         for (int i = 0; i < listObject.childCount; i++)
@@ -45,38 +60,8 @@ public class LootPanel : MonoBehaviour
             objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
 
             objectPanel.item = this.items[i];
-            
-            //panel.GetComponents<Button>()[0].onClick.AddListener(delegate{objectPanel.GetItem();});
-            //panel.GetComponents<Button>()[1].onClick.AddListener(delegate{objectPanel.SellItem();});
         }
-        
-        Inventory.Instance.AddItemsAndPersist(this.items);
     }
-
-    // public void SellAll()
-    // {
-    //     var cost = 0;
-    //     var nb = 0;
-    //     for (int i = 0; i < this.items.Count; i++)
-    //     {
-    //         Inventory.Instance.AddMoney(this.items[i].price);
-    //         cost += this.items[i].price;
-    //         nb++;
-    //     }
-    //     this.items.Clear();
-    //     this.ClosePanel();
-    //     if (nb > 0)
-    //     {
-    //         MessagePanel.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
-    //     }
-    // }
-
-    // public void TakeAll()
-    // {
-    //     Inventory.Instance.AddItemsAndPersist(this.items);
-    //     this.items.Clear();
-    //     this.ClosePanel();
-    // }
 
     public void OpenPanel()
     {

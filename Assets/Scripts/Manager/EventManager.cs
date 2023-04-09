@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using UnityEngine;
 
 public class EventManager : MonoBehaviour
@@ -16,7 +18,7 @@ public class EventManager : MonoBehaviour
     public Event GenerateRandomEvent(Event[] targetAvailableList, GameObject targetViewport)
     {
         Event target = Instantiate(targetAvailableList[0], targetViewport.transform);
-        target.SetReward(Item.GenerateRandomItems(1));
+        target.SetRewards(new List<Item> { new Item() });
         return target;
     }
 }

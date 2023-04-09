@@ -15,7 +15,7 @@ public class Event : MonoBehaviour
         return null;
     }
 
-    public virtual void SetReward(List<Item> items)
+    public virtual void SetRewards(List<Item> items)
     {
     }
 

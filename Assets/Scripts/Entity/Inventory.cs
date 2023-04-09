@@ -14,26 +14,26 @@ public class Inventory : MonoBehaviour
     private List<Item> items;
     public Text moneyText;
 
-	public static Inventory Instance
-	{
-		get
-		{
-			if (!_Instance)
-			{
-				// NOTE: read docs to see directory requirements for Resources.Load!
-				var prefab = Resources.Load<GameObject>("Prefabs/System/Inventory");
-				// create the prefab in your scene
-				var inScene = Instantiate<GameObject>(prefab);
-				// try find the instance inside the prefab
-				_Instance = inScene.GetComponentInChildren<Inventory>();
-				// guess there isn't one, add one
-				if (!_Instance) _Instance = inScene.AddComponent<Inventory>();
-				// mark root as DontDestroyOnLoad();
-				DontDestroyOnLoad(_Instance.transform.root.gameObject);
-			}
-			return _Instance;
-		}
-	}
+    public static Inventory Instance
+    {
+        get
+        {
+            if (!_Instance)
+            {
+                // NOTE: read docs to see directory requirements for Resources.Load!
+                var prefab = Resources.Load<GameObject>("Prefabs/System/Inventory");
+                // create the prefab in your scene
+                var inScene = Instantiate<GameObject>(prefab);
+                // try find the instance inside the prefab
+                _Instance = inScene.GetComponentInChildren<Inventory>();
+                // guess there isn't one, add one
+                if (!_Instance) _Instance = inScene.AddComponent<Inventory>();
+                // mark root as DontDestroyOnLoad();
+                DontDestroyOnLoad(_Instance.transform.root.gameObject);
+            }
+            return _Instance;
+        }
+    }
 
     private void Start()
     {
@@ -69,7 +69,7 @@ public class Inventory : MonoBehaviour
         this.items.Add(item);
     }
 
-    public void AddItemsAndPersist(List<Item> itemsToAdd)
+    public int AddItemsAndPersist(List<Item> itemsToAdd)
     {
         List<ItemAPI> listItemApi = new List<ItemAPI>();
         foreach (Item item in itemsToAdd)
@@ -79,7 +79,10 @@ public class Inventory : MonoBehaviour
         }
 
         string[] itemsJson = { JsonConvert.SerializeObject(listItemApi) };
-        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.ADD_USER_ITEMS, itemsJson));
+        var request = new NetworkRequest(NetworkRequest.ADD_USER_ITEMS, itemsJson);
+        NetworkManager.Instance.AddRequest(request);
+
+        return request.getId();
     }
 
     public void RemoveItemsAndPersist(List<Item> itemsToRemove)

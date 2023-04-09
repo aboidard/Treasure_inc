@@ -26,7 +26,7 @@ public class Chest : Event
         return loot;
     }
 
-    public override void SetReward(List<Item> loot)
+    public override void SetRewards(List<Item> loot)
     {
         this.loot.AddRange(loot);
     }
