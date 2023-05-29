@@ -1,6 +1,10 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
+using Newtonsoft.Json;
 
 public class LootPanel : MonoBehaviour
 {
@@ -10,6 +14,7 @@ public class LootPanel : MonoBehaviour
     public GameObject objectPanelPrefab;
     public static LootPanel instance;
     private List<Item> items;
+
     void Awake()
     {
         if (instance != null)
@@ -19,6 +24,7 @@ public class LootPanel : MonoBehaviour
         }
         instance = this;
     }
+
     private void Start()
     {
         ClosePanel();
@@ -26,40 +32,62 @@ public class LootPanel : MonoBehaviour
 
     public void ShowLoot(List<Item> items, string title)
     {
-        int requestId = Inventory.Instance.AddItemsAndPersist(items);
-        //start a coroutine to wait for the request to be done
-        StartCoroutine(WaitForRequest(requestId, title));
+        OpenPanel();
+        StartCoroutine(AddItem(title, items.Count));
 
     }
-    public IEnumerator<WaitForSeconds> WaitForRequest(int requestId, string title)
+
+    IEnumerator AddItem(String title, int nb)
     {
-        NetworkResponseItems response = null;
-        var start = Time.time;
-        while (response == null || Time.time - start < 5)
+
+        Loader.instance.SetLoading(true);
+        var apiEndPoint = NetworkManager.addUserItemsEndPoint;
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(String.Format(NetworkManager.apiUrl + apiEndPoint, NetworkManager.Instance.publicKey), "{\"nb\":" + nb + "}"))
         {
-            //response = (NetworkResponseItems)NetworkManager.Instance.GetResponse(requestId);
-            yield return new WaitForSeconds(0.1f);
-        }
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", NetworkManager.Instance.privateKey);
+            Debug.Log("SendWebRequest : " + webRequest);
+            yield return webRequest.SendWebRequest();
+            Debug.Log("done SendWebRequest");
+            try
+            {
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+                {
+                    Debug.Log("LoginException: " + webRequest.error);
+                    throw new LoginException(webRequest.error);
+                }
+                else
+                {
+                    Debug.Log("Received: " + webRequest.downloadHandler.text);
+                    lootTitle.text = title;
+                    this.items = JsonConvert.DeserializeObject<List<Item>>(webRequest.downloadHandler.text);
 
-        OpenPanel();
-        lootTitle.text = title;
-        this.items = response.getItems();
+                    //init
+                    for (int i = 0; i < listObject.childCount; i++)
+                    {
+                        Destroy(listObject.GetChild(i).gameObject);
+                    }
 
-        //init
-        for (int i = 0; i < listObject.childCount; i++)
-        {
-            Destroy(listObject.GetChild(i).gameObject);
-        }
+                    for (int i = 0; i < this.items.Count; i++)
+                    {
+                        GameObject panel = Instantiate(objectPanelPrefab, listObject);
+                        ObjectPanel objectPanel = panel.GetComponent<ObjectPanel>();
+                        objectPanel.itemName.text = this.items[i].name;
+                        objectPanel.itemImage.sprite = this.items[i].graphics;
+                        objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
 
-        for (int i = 0; i < this.items.Count; i++)
-        {
-            GameObject panel = Instantiate(objectPanelPrefab, listObject);
-            ObjectPanel objectPanel = panel.GetComponent<ObjectPanel>();
-            objectPanel.itemName.text = this.items[i].name;
-            objectPanel.itemImage.sprite = this.items[i].graphics;
-            objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
-
-            objectPanel.item = this.items[i];
+                        objectPanel.item = this.items[i];
+                    }
+                }
+            }
+            catch (LoginException e)
+            {
+                Debug.Log("Error: " + e.Message);
+                MessagePanel.instance.DisplayMessage("Erreur !", "Impossible de se connecter, veuillez réessayer ultérieurement !\n" + e.Message);
+            }
+            finally
+            {
+                Loader.instance.SetLoading(false);
+            }
         }
     }
 

@@ -16,7 +16,8 @@ public class NetworkManager : MonoBehaviour
     public static readonly HttpClient client = new HttpClient();
 
 #if UNITY_EDITOR
-    public static string apiUrl = "http://127.0.0.1:8081";
+    //public static string apiUrl = "http://127.0.0.1:8081";
+    public static string apiUrl = "https://api.treasure-inc.fr";
 #else
     public static string apiUrl = "https://api.treasure-inc.fr";
 #endif

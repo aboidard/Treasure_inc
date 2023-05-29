@@ -1,7 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
@@ -53,7 +53,6 @@ public class MainMenu : MonoBehaviour
     public void StartGame()
     {
         StartCoroutine(Login());
-
     }
 
     IEnumerator Login()

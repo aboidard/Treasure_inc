@@ -69,7 +69,7 @@ public class Inventory : MonoBehaviour
         this.items.Add(item);
     }
 
-    public int AddItemsAndPersist(List<Item> itemsToAdd)
+    /*public int AddItemsAndPersist(List<Item> itemsToAdd)
     {
         List<ItemAPI> listItemApi = new List<ItemAPI>();
         foreach (Item item in itemsToAdd)
@@ -83,7 +83,7 @@ public class Inventory : MonoBehaviour
         NetworkManager.Instance.AddRequest(request);
 
         return request.getId();
-    }
+    }*/
 
     public void RemoveItemsAndPersist(List<Item> itemsToRemove)
     {
