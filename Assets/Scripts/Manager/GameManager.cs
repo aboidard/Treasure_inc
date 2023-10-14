@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.L))
         {
-            NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"false"}));
+            //NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.LOGIN, new string[]{"false"}));
         }
     }
 }

@@ -387,7 +387,7 @@ TextureImporter:
       213: -8858852070344930936
     second: TileObjectsOfficeFurniture_127
   externalObjects: {}
-  serializedVersion: 11
+  serializedVersion: 12
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -404,10 +404,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -417,8 +419,8 @@ TextureImporter:
   textureSettings:
     serializedVersion: 2
     filterMode: 0
-    aniso: -1
-    mipBias: -100
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
     wrapW: 1
@@ -446,6 +448,8 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -457,6 +461,7 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
@@ -469,6 +474,7 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
@@ -481,6 +487,46 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
@@ -3184,9 +3230,137 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-  spritePackingTag: 
+    nameFileIdTable:
+      TileObjectsOfficeFurniture_0: 4143480496622332116
+      TileObjectsOfficeFurniture_1: -6695388345957785827
+      TileObjectsOfficeFurniture_10: -3708792556118874506
+      TileObjectsOfficeFurniture_100: -5736916329484459756
+      TileObjectsOfficeFurniture_101: -2387406350767100056
+      TileObjectsOfficeFurniture_102: 1838590362241737501
+      TileObjectsOfficeFurniture_103: -2053603303329827928
+      TileObjectsOfficeFurniture_104: 615156595737678934
+      TileObjectsOfficeFurniture_105: -2492142995807667372
+      TileObjectsOfficeFurniture_106: 622113727005512988
+      TileObjectsOfficeFurniture_107: -3981852068907202123
+      TileObjectsOfficeFurniture_108: 3412069600476109082
+      TileObjectsOfficeFurniture_109: -2487679708509508731
+      TileObjectsOfficeFurniture_11: 3761437477141308728
+      TileObjectsOfficeFurniture_110: -2528381669442810941
+      TileObjectsOfficeFurniture_111: -1267185661994335452
+      TileObjectsOfficeFurniture_112: -960255391123780535
+      TileObjectsOfficeFurniture_113: -2841666285453676976
+      TileObjectsOfficeFurniture_114: -4476122652800202602
+      TileObjectsOfficeFurniture_115: -8550501915487134476
+      TileObjectsOfficeFurniture_116: -5804950553528588858
+      TileObjectsOfficeFurniture_117: -8496463351419746106
+      TileObjectsOfficeFurniture_118: 4926617290153734252
+      TileObjectsOfficeFurniture_119: -5390748723545009407
+      TileObjectsOfficeFurniture_12: -929870246257570073
+      TileObjectsOfficeFurniture_120: 8673055662497343538
+      TileObjectsOfficeFurniture_121: 1082650763155861376
+      TileObjectsOfficeFurniture_122: 7156522907972879067
+      TileObjectsOfficeFurniture_123: -1045129832154918145
+      TileObjectsOfficeFurniture_124: 8227041178258793118
+      TileObjectsOfficeFurniture_125: 6063451681240726756
+      TileObjectsOfficeFurniture_126: -7547790338285236051
+      TileObjectsOfficeFurniture_127: -8858852070344930936
+      TileObjectsOfficeFurniture_13: 572320702406842603
+      TileObjectsOfficeFurniture_14: 5652355695623660346
+      TileObjectsOfficeFurniture_15: 191889560748351344
+      TileObjectsOfficeFurniture_16: -4246652387478542437
+      TileObjectsOfficeFurniture_17: 7552799086909665121
+      TileObjectsOfficeFurniture_18: -1523891668608719827
+      TileObjectsOfficeFurniture_19: -3292441730040407467
+      TileObjectsOfficeFurniture_2: -4415287275528399055
+      TileObjectsOfficeFurniture_20: 7691703878429847256
+      TileObjectsOfficeFurniture_21: -3288181107329455357
+      TileObjectsOfficeFurniture_22: -6239524814471506074
+      TileObjectsOfficeFurniture_23: 1848876292880584110
+      TileObjectsOfficeFurniture_24: -2116049023979798500
+      TileObjectsOfficeFurniture_25: 970442073023745232
+      TileObjectsOfficeFurniture_26: 6901920009132075213
+      TileObjectsOfficeFurniture_27: -4489125257577905528
+      TileObjectsOfficeFurniture_28: -4433753837282282261
+      TileObjectsOfficeFurniture_29: -1277633494066239518
+      TileObjectsOfficeFurniture_3: -6953257260127081057
+      TileObjectsOfficeFurniture_30: 449546840890964466
+      TileObjectsOfficeFurniture_31: -123690458537677913
+      TileObjectsOfficeFurniture_32: -108953708382506651
+      TileObjectsOfficeFurniture_33: -6214327045592581672
+      TileObjectsOfficeFurniture_34: 7456475377965995767
+      TileObjectsOfficeFurniture_35: -7648052551366710669
+      TileObjectsOfficeFurniture_36: -2197632742420355949
+      TileObjectsOfficeFurniture_37: -7058372167219492724
+      TileObjectsOfficeFurniture_38: -471301350092808152
+      TileObjectsOfficeFurniture_39: -7100656265208081966
+      TileObjectsOfficeFurniture_4: -8814663345577185609
+      TileObjectsOfficeFurniture_40: -5338518658174240266
+      TileObjectsOfficeFurniture_41: 182598588856512523
+      TileObjectsOfficeFurniture_42: 5230458969865263201
+      TileObjectsOfficeFurniture_43: 5808716458806044378
+      TileObjectsOfficeFurniture_44: 6861649807789574840
+      TileObjectsOfficeFurniture_45: 1476580548158415107
+      TileObjectsOfficeFurniture_46: -2881590425194067289
+      TileObjectsOfficeFurniture_47: 4265279628690480271
+      TileObjectsOfficeFurniture_48: -8468187424355120503
+      TileObjectsOfficeFurniture_49: -4280293251671552569
+      TileObjectsOfficeFurniture_5: -9181416980013969870
+      TileObjectsOfficeFurniture_50: -3681870193291127793
+      TileObjectsOfficeFurniture_51: 1871272290239542198
+      TileObjectsOfficeFurniture_52: 7750064472147464920
+      TileObjectsOfficeFurniture_53: -4415928538102727037
+      TileObjectsOfficeFurniture_54: 7987092240377522402
+      TileObjectsOfficeFurniture_55: 2480994138581274468
+      TileObjectsOfficeFurniture_56: 9163931707941005065
+      TileObjectsOfficeFurniture_57: 2533326424273800877
+      TileObjectsOfficeFurniture_58: 6044167762865487475
+      TileObjectsOfficeFurniture_59: -5775496297172950911
+      TileObjectsOfficeFurniture_6: 267686969336069715
+      TileObjectsOfficeFurniture_60: 7869550205375209714
+      TileObjectsOfficeFurniture_61: -6841340818277313430
+      TileObjectsOfficeFurniture_62: 4317335821273091779
+      TileObjectsOfficeFurniture_63: 6575328482113086157
+      TileObjectsOfficeFurniture_64: -4533149949637971545
+      TileObjectsOfficeFurniture_65: 7110661966386885465
+      TileObjectsOfficeFurniture_66: -608932022829971658
+      TileObjectsOfficeFurniture_67: -2264845310771456332
+      TileObjectsOfficeFurniture_68: 7880229060628356188
+      TileObjectsOfficeFurniture_69: 7780814927507936693
+      TileObjectsOfficeFurniture_7: -157664272843789738
+      TileObjectsOfficeFurniture_70: 1202573808244175003
+      TileObjectsOfficeFurniture_71: -3537843864883725758
+      TileObjectsOfficeFurniture_72: 6535974596399999802
+      TileObjectsOfficeFurniture_73: 2301953943466133746
+      TileObjectsOfficeFurniture_74: 1716334592396536768
+      TileObjectsOfficeFurniture_75: -2641528090730746158
+      TileObjectsOfficeFurniture_76: 1717239149588235053
+      TileObjectsOfficeFurniture_77: -3847786105420601775
+      TileObjectsOfficeFurniture_78: -6251761582403505586
+      TileObjectsOfficeFurniture_79: 7704268746407754685
+      TileObjectsOfficeFurniture_8: 4470404644788502229
+      TileObjectsOfficeFurniture_80: -1906223455255252676
+      TileObjectsOfficeFurniture_81: 7059875816693928673
+      TileObjectsOfficeFurniture_82: 7497227061057811168
+      TileObjectsOfficeFurniture_83: -589696793023457518
+      TileObjectsOfficeFurniture_84: 1790369731770329164
+      TileObjectsOfficeFurniture_85: -4817609523283053835
+      TileObjectsOfficeFurniture_86: 2806306293268228019
+      TileObjectsOfficeFurniture_87: 1903864660249074987
+      TileObjectsOfficeFurniture_88: 1955532554761608420
+      TileObjectsOfficeFurniture_89: -7100828943546721921
+      TileObjectsOfficeFurniture_9: 8233200984357045786
+      TileObjectsOfficeFurniture_90: 3772493613611213153
+      TileObjectsOfficeFurniture_91: 7880350076329215939
+      TileObjectsOfficeFurniture_92: -327300615945851321
+      TileObjectsOfficeFurniture_93: -8749236016596442049
+      TileObjectsOfficeFurniture_94: -4840080787769863433
+      TileObjectsOfficeFurniture_95: -5480724059045647065
+      TileObjectsOfficeFurniture_96: 5886335346089308694
+      TileObjectsOfficeFurniture_97: 794293275415004188
+      TileObjectsOfficeFurniture_98: 4917805345160036040
+      TileObjectsOfficeFurniture_99: 165658382716415770
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

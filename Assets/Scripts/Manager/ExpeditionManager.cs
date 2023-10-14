@@ -99,7 +99,7 @@ public class ExpeditionManager : MonoBehaviour
         expeditionList.Add(expedition);
 
         string[] expeditionJson = { JsonConvert.SerializeObject(new ExpeditionAPI(cost)) };
-        NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.SEND_EXPEDITION, expeditionJson));
+        //NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.SEND_EXPEDITION, expeditionJson));
 
         Debug.Log("Expedition send " + expedition);
         return expedition;

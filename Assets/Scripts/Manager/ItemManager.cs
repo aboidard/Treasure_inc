@@ -15,12 +15,6 @@ public class ItemManager : MonoBehaviour
         instance = this;
     }
 
-    public (Sprite graphics, int graphicsId) PickOneRandomSprite()
-    {
-        int randNumber = Random.Range(0, sprites.Count);
-        return (sprites[randNumber], randNumber);
-    }
-
     public Sprite PickSprite(int id)
     {
         return sprites[id];

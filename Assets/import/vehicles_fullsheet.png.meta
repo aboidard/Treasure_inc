@@ -219,7 +219,7 @@ TextureImporter:
       213: -6804950548417480413
     second: vehicles_fullsheet_71
   externalObjects: {}
-  serializedVersion: 11
+  serializedVersion: 12
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -236,10 +236,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -278,6 +280,8 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -289,6 +293,7 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
@@ -301,6 +306,7 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
@@ -313,6 +319,33 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
@@ -1840,9 +1873,81 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-  spritePackingTag: 
+    nameFileIdTable:
+      vehicles_fullsheet_0: 972399544610159373
+      vehicles_fullsheet_1: -284701957501688272
+      vehicles_fullsheet_10: -2341962011597587162
+      vehicles_fullsheet_11: -1335558111376108634
+      vehicles_fullsheet_12: -2576204829027019754
+      vehicles_fullsheet_13: 6076653645258380339
+      vehicles_fullsheet_14: -9159475905246627597
+      vehicles_fullsheet_15: -1380830569189809962
+      vehicles_fullsheet_16: -4680598521835994108
+      vehicles_fullsheet_17: 4736604935553026982
+      vehicles_fullsheet_18: 5826557597386699614
+      vehicles_fullsheet_19: 895130580363604309
+      vehicles_fullsheet_2: 8465762465532547724
+      vehicles_fullsheet_20: 8832907985202925019
+      vehicles_fullsheet_21: 4029275602765950249
+      vehicles_fullsheet_22: 1270239473705331633
+      vehicles_fullsheet_23: 7440242566969384920
+      vehicles_fullsheet_24: -6658017622301322073
+      vehicles_fullsheet_25: -7906727543228928291
+      vehicles_fullsheet_26: -323817090026330494
+      vehicles_fullsheet_27: -4938383206712158090
+      vehicles_fullsheet_28: -3323048679650149723
+      vehicles_fullsheet_29: -3744931644209182324
+      vehicles_fullsheet_3: 3195322734433501288
+      vehicles_fullsheet_30: -4050786339285966936
+      vehicles_fullsheet_31: 7027611585461840038
+      vehicles_fullsheet_32: -5352549361757101396
+      vehicles_fullsheet_33: 5884865955701659343
+      vehicles_fullsheet_34: -3129521120594391226
+      vehicles_fullsheet_35: 2266364321578199765
+      vehicles_fullsheet_36: -6506825456813031189
+      vehicles_fullsheet_37: -4923970191689771546
+      vehicles_fullsheet_38: -2447343402626845010
+      vehicles_fullsheet_39: -4152719749907071385
+      vehicles_fullsheet_4: -2234869731134901239
+      vehicles_fullsheet_40: 7968437733519102731
+      vehicles_fullsheet_41: -3994188554599163655
+      vehicles_fullsheet_42: -1538210142351885667
+      vehicles_fullsheet_43: -2086852277350873798
+      vehicles_fullsheet_44: 5632823900210291945
+      vehicles_fullsheet_45: -6719766924238872311
+      vehicles_fullsheet_46: 3565530850917220504
+      vehicles_fullsheet_47: 8229532284857910423
+      vehicles_fullsheet_48: 2169476587308697348
+      vehicles_fullsheet_49: 1370741607126446208
+      vehicles_fullsheet_5: -8635996061853350423
+      vehicles_fullsheet_50: -9068552350156414177
+      vehicles_fullsheet_51: 603715158358232338
+      vehicles_fullsheet_52: -7010438143735824424
+      vehicles_fullsheet_53: -2898324488388661928
+      vehicles_fullsheet_54: 704953835530602923
+      vehicles_fullsheet_55: -6651225177042839400
+      vehicles_fullsheet_56: -8782224075248764619
+      vehicles_fullsheet_57: 1957693939247644030
+      vehicles_fullsheet_58: -1122140517803183456
+      vehicles_fullsheet_59: 3224595278205092737
+      vehicles_fullsheet_6: 2504970358263659792
+      vehicles_fullsheet_60: -5333543446212789437
+      vehicles_fullsheet_61: 6810438921101693091
+      vehicles_fullsheet_62: -8712944164841476665
+      vehicles_fullsheet_63: -7779054951214103365
+      vehicles_fullsheet_64: -3397058585490374214
+      vehicles_fullsheet_65: -2824043056334510078
+      vehicles_fullsheet_66: -1316140497258233318
+      vehicles_fullsheet_67: -8591147557463009764
+      vehicles_fullsheet_68: 1936933555383064398
+      vehicles_fullsheet_69: -7753919368720577064
+      vehicles_fullsheet_7: 6615198826270886886
+      vehicles_fullsheet_70: -599174841482000570
+      vehicles_fullsheet_71: -6804950548417480413
+      vehicles_fullsheet_8: -932642537948080798
+      vehicles_fullsheet_9: 7880982414747428256
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

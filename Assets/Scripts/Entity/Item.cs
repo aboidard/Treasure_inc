@@ -27,7 +27,7 @@ public class Item : ScriptableObject
         return "<color=" + getRarityColorString(this.rarity) + ">" + this.name + "</color>";
     }
 
-    public static List<Item> GenerateRandomItems(int nb)
+    /*public static List<Item> GenerateRandomItems(int nb)
     {
         List<Item> list = new List<Item>();
         for (int i = 0; i < nb; i++)
@@ -35,7 +35,7 @@ public class Item : ScriptableObject
             list.Add(GenerateRandomItem());
         }
         return list;
-    }
+    }*/
 
     public bool Equals(Item other)
     {
@@ -43,41 +43,41 @@ public class Item : ScriptableObject
         return (this.id.Equals(other.id));
     }
 
-    public static Item GenerateRandomItem()
-    {
-        int proba = Random.Range(1, 1001);
-        Rarity rarity = Rarity.Common;
-        switch (proba)
-        {
-            case int n when (n <= 650):
-                rarity = Rarity.Common;
-                break;
-            case int n when (n > 650 && n <= 850):
-                rarity = Rarity.Uncommon;
-                break;
-            case int n when (n > 850 && n <= 990):
-                rarity = Rarity.Rare;
-                break;
-            case int n when (n > 990 && n <= 999):
-                rarity = Rarity.Epic;
-                break;
-            case int n when (n == 1000):
-                rarity = Rarity.Legendary;
-                break;
-        }
-        return GenerateRandomItem(rarity);
-    }
-    public static Item GenerateRandomItem(Rarity rarity)
-    {
-        Item item = ScriptableObject.CreateInstance("Item") as Item;
-        item.name = StringGenerator.ItemNameGenerator(rarity);
-        item.price = Random.Range(1, 1000) + 1000 * (int)rarity;
-        item.rarity = rarity;
-        item.description = StringGenerator.ItemDescriptionGenerator();
-        (item.graphics, item.graphicsId) = ItemManager.instance.PickOneRandomSprite();
+    /* public static Item GenerateRandomItem()
+     {
+         int proba = Random.Range(1, 1001);
+         Rarity rarity = Rarity.Common;
+         switch (proba)
+         {
+             case int n when (n <= 650):
+                 rarity = Rarity.Common;
+                 break;
+             case int n when (n > 650 && n <= 850):
+                 rarity = Rarity.Uncommon;
+                 break;
+             case int n when (n > 850 && n <= 990):
+                 rarity = Rarity.Rare;
+                 break;
+             case int n when (n > 990 && n <= 999):
+                 rarity = Rarity.Epic;
+                 break;
+             case int n when (n == 1000):
+                 rarity = Rarity.Legendary;
+                 break;
+         }
+         return GenerateRandomItem(rarity);
+     }
+     public static Item GenerateRandomItem(Rarity rarity)
+     {
+         Item item = ScriptableObject.CreateInstance("Item") as Item;
+         item.name = StringGenerator.ItemNameGenerator(rarity);
+         item.price = Random.Range(1, 1000) + 1000 * (int)rarity;
+         item.rarity = rarity;
+         item.description = StringGenerator.ItemDescriptionGenerator();
+         (item.graphics, item.graphicsId) = ItemManager.instance.PickOneRandomSprite();
 
-        return item;
-    }
+         return item;
+     }*/
     public static Item GenerateScriptableItem(int id)
     {
         // Item item = ScriptableObject.CreateInstance("Item") as Item;
