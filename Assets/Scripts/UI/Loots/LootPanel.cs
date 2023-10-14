@@ -32,51 +32,42 @@ public class LootPanel : MonoBehaviour
 
     public void ShowLoot(List<Item> items, string title)
     {
+        lootTitle.text = title;
         OpenPanel();
-        StartCoroutine(AddItem(title, items.Count));
-
+        StartCoroutine(AddItem(items.Count));
     }
 
-    IEnumerator AddItem(String title, int nb)
+    IEnumerator AddItem(int nb)
     {
-
         Loader.instance.SetLoading(true);
         var apiEndPoint = NetworkManager.addUserItemsEndPoint;
-        using (UnityWebRequest webRequest = UnityWebRequest.Post(String.Format(NetworkManager.apiUrl + apiEndPoint, NetworkManager.Instance.publicKey), "{\"nb\":" + nb + "}"))
+        using (UnityWebRequest webRequest = UnityWebRequest.Put(String.Format(NetworkManager.apiUrl + apiEndPoint, NetworkManager.Instance.publicKey), "{\"nb\":" + nb + "}"))
         {
+            webRequest.method = "POST";
             webRequest.SetRequestHeader("X-PRIVATE-KEY", NetworkManager.Instance.privateKey);
+            webRequest.SetRequestHeader("Content-Type", "application/json");
             Debug.Log("SendWebRequest : " + webRequest);
             yield return webRequest.SendWebRequest();
-            Debug.Log("done SendWebRequest");
             try
             {
                 if (webRequest.result == UnityWebRequest.Result.ConnectionError)
                 {
-                    Debug.Log("LoginException: " + webRequest.error);
+                    Debug.LogError("LoginException: " + webRequest.error);
                     throw new LoginException(webRequest.error);
                 }
                 else
                 {
                     Debug.Log("Received: " + webRequest.downloadHandler.text);
-                    lootTitle.text = title;
-                    this.items = JsonConvert.DeserializeObject<List<Item>>(webRequest.downloadHandler.text);
-
-                    //init
-                    for (int i = 0; i < listObject.childCount; i++)
+                    List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
+                    this.items = new List<Item>();
+                    foreach (ItemAPI it in itemsFromJSON)
                     {
-                        Destroy(listObject.GetChild(i).gameObject);
+                        Item myItem = Item.CreateItemAPI(it);
+                        this.items.Add(myItem);
+                        //add the item to the inventory
+                        Inventory.Instance.AddItem(myItem);
                     }
-
-                    for (int i = 0; i < this.items.Count; i++)
-                    {
-                        GameObject panel = Instantiate(objectPanelPrefab, listObject);
-                        ObjectPanel objectPanel = panel.GetComponent<ObjectPanel>();
-                        objectPanel.itemName.text = this.items[i].name;
-                        objectPanel.itemImage.sprite = this.items[i].graphics;
-                        objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
-
-                        objectPanel.item = this.items[i];
-                    }
+                    InitPanel();
                 }
             }
             catch (LoginException e)
@@ -93,9 +84,32 @@ public class LootPanel : MonoBehaviour
 
     public void OpenPanel()
     {
-
         lootPanel.transform.position = new Vector3(Screen.width / 2, Screen.height / 2, 0);
         lootPanel.SetActive(true);
+    }
+
+    public void InitPanel()
+    {
+        for (int i = 0; i < listObject.childCount; i++)
+        {
+            Destroy(listObject.GetChild(i).gameObject);
+        }
+
+        for (int i = 0; i < this.items.Count; i++)
+        {
+            GameObject panel = Instantiate(objectPanelPrefab, listObject);
+            ObjectPanel objectPanel = panel.GetComponent<ObjectPanel>();
+            if (objectPanel == null)
+            {
+                Debug.LogError("Object Panel prefab is missing ObjectPanel script.");
+                return;
+            }
+            objectPanel.itemName.text = this.items[i].name;
+            objectPanel.itemImage.sprite = this.items[i].graphics;
+            objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
+
+            objectPanel.item = this.items[i];
+        }
     }
 
     public void ClosePanel()
