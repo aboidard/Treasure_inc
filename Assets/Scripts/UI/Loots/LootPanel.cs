@@ -52,25 +52,24 @@ public class LootPanel : MonoBehaviour
             {
                 if (webRequest.result == UnityWebRequest.Result.ConnectionError)
                 {
-                    Debug.LogError("LoginException: " + webRequest.error);
-                    throw new LoginException(webRequest.error);
+                    Debug.LogError("ConnectionException: " + webRequest.error);
+                    throw new ConnectionException(webRequest.error);
                 }
-                else
+
+                Debug.Log("Received: " + webRequest.downloadHandler.text);
+                List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
+                this.items = new List<Item>();
+                foreach (ItemAPI it in itemsFromJSON)
                 {
-                    Debug.Log("Received: " + webRequest.downloadHandler.text);
-                    List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
-                    this.items = new List<Item>();
-                    foreach (ItemAPI it in itemsFromJSON)
-                    {
-                        Item myItem = Item.CreateItemAPI(it);
-                        this.items.Add(myItem);
-                        //add the item to the inventory
-                        Inventory.Instance.AddItem(myItem);
-                    }
-                    InitPanel();
+                    Item myItem = Item.CreateItemAPI(it);
+                    this.items.Add(myItem);
+
+                    //add the item to the inventory
+                    Inventory.Instance.AddItem(myItem);
                 }
+                InitPanel();
             }
-            catch (LoginException e)
+            catch (ConnectionException e)
             {
                 Debug.Log("Error: " + e.Message);
                 MessagePanel.instance.DisplayMessage("Erreur !", "Impossible de se connecter, veuillez réessayer ultérieurement !\n" + e.Message);
