@@ -33,6 +33,7 @@ public class LootPanel : MonoBehaviour
     public void ShowLoot(List<Item> items, string title)
     {
         lootTitle.text = title;
+        InitPanel();
         OpenPanel();
         StartCoroutine(AddItem(items.Count));
     }
@@ -67,7 +68,7 @@ public class LootPanel : MonoBehaviour
                     //add the item to the inventory
                     Inventory.Instance.AddItem(myItem);
                 }
-                InitPanel();
+                FillPanel();
             }
             catch (ConnectionException e)
             {
@@ -93,6 +94,10 @@ public class LootPanel : MonoBehaviour
         {
             Destroy(listObject.GetChild(i).gameObject);
         }
+    }
+    public void FillPanel()
+    {
+
 
         for (int i = 0; i < this.items.Count; i++)
         {
