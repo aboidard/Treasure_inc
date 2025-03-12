@@ -135,7 +135,7 @@ PlayerSettings:
   vulkanEnableLateAcquireNextImage: 0
   vulkanEnableCommandBufferRecycling: 1
   loadStoreDebugModeEnabled: 0
-  bundleVersion: 0.16
+  bundleVersion: 0.19
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -168,7 +168,7 @@ PlayerSettings:
     iPhone: 0
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
-  AndroidBundleVersionCode: 16
+  AndroidBundleVersionCode: 19
   AndroidMinSdkVersion: 29
   AndroidTargetSdkVersion: 34
   AndroidPreferredInstallLocation: 1
@@ -262,7 +262,7 @@ PlayerSettings:
   AndroidTargetDevices: 1
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: C:/Users/Arnaud/Documents/lab/Treasure_INC/treasure-inc-conf/unity/user.keystore
+  AndroidKeystoreName: C:/Users/Arnaud/Lab/Treasure_inc/treasure-inc-conf/unity/user.keystore
   AndroidKeyaliasName: playstore
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidBuildApkPerCpuArchitecture: 0
