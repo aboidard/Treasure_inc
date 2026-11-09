@@ -134,7 +134,17 @@ public static class StringGenerator
         "Un certain professeur Johanes l'a cherché toute sa vie.",
         "De fabrication artisanale, il a été réalisé grace à un mouvement manuel rotatif en s'aidant de la région axillaire.",
         "C'est une de mes plus belle pièce...",
-        "Mais commençons par le début, qu'est-ce qu'un pont suspendu ?"
+        "Mais commençons par le début, qu'est-ce qu'un pont suspendu ?",
+        "Il y a une inscription : 'ne pas donner à manger après minuit'",
+        "Garanti 2 ans, mais le magasin a fermé il y a 10 ans.",
+        "Un expert l'a regardé longuement avant de dire « hmm ».",
+        "Il a survécu à trois déménagements et une belle-mère.",
+        "Les bardes ont renoncé à rimer avec son nom.",
+        "Il fait un petit bruit de hamster quand on le secoue.",
+        "Mon chat l'a renversé de la table trois fois, donc il est solide.",
+        "Il manque la notice. Et le reste, aussi.",
+        "Certifié authentique par un monsieur très sûr de lui.",
+        "Ça sent le fond de tiroir et la nostalgie."
     };
 
     public static string ExpeditionNameGenerator()
