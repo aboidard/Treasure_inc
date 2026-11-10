@@ -48,7 +48,9 @@ public class ExpeditionRunPanel : MonoBehaviour
         }
         if (targetViewport.GetComponent<EventTrigger>().isInRange && !endMiniGame)
         {
+            //stop the crew
             rb.velocity = Vector2.zero;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
             target.Reach();
             expedition.items.AddRange(target.GetReward());
             endMiniGame = true;
@@ -61,7 +63,7 @@ public class ExpeditionRunPanel : MonoBehaviour
     }
     private IEnumerator WaitForEnding()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1.5f);
 
         expedition.floorOver = true;
     }
@@ -71,11 +73,10 @@ public class ExpeditionRunPanel : MonoBehaviour
     {
         crewMember.transform.position = crewViewport.transform.position;
         //if the crew velocity is > walkSpeed, then the velocity is gradualy reduced to walkSpeed
-        Debug.Log(rb.velocity.magnitude + " : " + initialMagnitude + "=" + (rb.velocity.magnitude > initialMagnitude));
 
         if (rb.velocity.magnitude > initialMagnitude)
         {
-            rb.AddForce(new Vector2(-walkSpeed/60, 0f));
+            rb.AddForce(new Vector2(-walkSpeed / 60, 0f));
         }
     }
 

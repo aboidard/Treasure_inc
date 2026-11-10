@@ -96,7 +96,8 @@ public class MainMenu : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Received: " + webRequest.downloadHandler.text);
+                    Debug.Log("Received: " + webRequest.downloadHandler.data);
+
                     User user = JsonConvert.DeserializeObject<User>(webRequest.downloadHandler.text);
                     Debug.Log("user : " + user);
                     if (createUser)
