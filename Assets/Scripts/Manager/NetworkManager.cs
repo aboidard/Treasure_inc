@@ -36,6 +36,7 @@ public class NetworkManager : MonoBehaviour
     public static string addUserItemsEndPoint = "/V1/user/{0}/items";
     public static string removeUserItemsEndPoint = "/V1/user/{0}/sellitems";
     public static string sendExpeditionEndPoint = "/V1/user/{0}/expedition";
+    public static string digCaseEndPoint = "/V1/user/{0}/expedition/dig";
 
     public static NetworkManager Instance
     {
@@ -63,10 +64,14 @@ public class NetworkManager : MonoBehaviour
         LoadAndSaveData.instance.LoadUserKeys();
     }
 
-    /*IEnumerator SendExpedition(string expedition)
+    /// <summary>
+    /// Sends the body as JSON to an end point of the current user, then calls onDone with the HTTP status and the
+    /// response text; the status is 0 and the text is the error when the API could not be reached.
+    /// </summary>
+    public IEnumerator PostJson(string endPoint, object body, Action<long, string> onDone)
     {
-        Loader.instance.SetLoading(true);
-        using (UnityWebRequest webRequest = UnityWebRequest.Put(String.Format(apiUrl + sendExpeditionEndPoint, this.publicKey), expedition))
+        string url = String.Format(apiUrl + endPoint, publicKey);
+        using (UnityWebRequest webRequest = UnityWebRequest.Put(url, JsonConvert.SerializeObject(body)))
         {
             //TODO: remove this hack and use post before
             webRequest.method = "POST";
@@ -76,13 +81,14 @@ public class NetworkManager : MonoBehaviour
 
             if (webRequest.result == UnityWebRequest.Result.ConnectionError)
             {
-                Debug.Log("Error: " + webRequest.error);
+                Debug.LogError("ConnectionException: " + webRequest.error);
+                onDone(0, webRequest.error);
             }
             else
             {
-                Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+                Debug.Log("Received: " + webRequest.downloadHandler.text);
+                onDone(webRequest.responseCode, webRequest.downloadHandler.text);
             }
-            Loader.instance.SetLoading(false);
         }
-    }*/
+    }
 }

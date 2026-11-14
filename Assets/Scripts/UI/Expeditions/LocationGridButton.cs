@@ -1,13 +1,13 @@
 using System.Collections;
-using System.Collections.Generic;
 
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Newtonsoft.Json;
 
 public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public List<EventLocationType> locationEvent;
+    public int caseId;
     public GameObject pickaxePrefab;
     public GameObject border;
     public GameObject digCostText;
@@ -17,31 +17,7 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     private void Awake()
     {
-        locationEvent = new List<EventLocationType>();
-        int proba = Random.Range(1, 1001);
-        switch (proba)
-        {
-            case int n when (n <= 650):
-                locationEvent.Add(EventLocationType.None);
-                break;
-            case int n when (n > 650 && n <= 850):
-                locationEvent.Add(EventLocationType.UpToOneBonus);
-                this.GetComponent<Image>().color = Color.green;
-                break;
-            case int n when (n > 850 && n <= 990):
-                locationEvent.Add(EventLocationType.UpToTwoBonus);
-                this.GetComponent<Image>().color = Color.blue;
-                break;
-            case int n when (n > 990 && n <= 999):
-                locationEvent.Add(EventLocationType.UpToThreeBonus);
-                this.GetComponent<Image>().color = Color.magenta;
-                break;
-            case int n when (n == 1000):
-                locationEvent.Add(EventLocationType.UpTofourBonus);
-                this.GetComponent<Image>().color = Color.red;
-                break;
-        }
-        digCostText.transform.position = this.transform.position + new Vector3(0, 75, 0);
+        digCostText.transform.position = this.transform.position + new Vector3(0, 40, 0);
         digCostText.GetComponent<Text>().text = "- " + digCost;
     }
 
@@ -65,14 +41,9 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             return;
         }
 
-        if (Inventory.Instance.CurrentMoney < digCost) throw new NotEnoughtMoneyException();
-        Inventory.Instance.SubtractMoney(digCost);
-        isClicked = true;
         //SendExpedition.instance.HideLocationButtons();
-        SendExpeditionPanel.instance.locationButtonSelected = this;
-        border.GetComponent<Image>().color = Color.red;
         digCostText.SetActive(false);
-        //Pickaxe animation        
+        //Pickaxe animation
         StartCoroutine(Digging());
 
     }
@@ -82,12 +53,52 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         SendExpeditionPanel.instance.isDiging = true;
         GameObject Pickaxe = Instantiate(pickaxePrefab, this.transform);
         Pickaxe.transform.position = this.transform.position + new Vector3(25, 85, 0);
-        yield return new WaitForSeconds(digTime);
+
+        float start = Time.time;
+        long status = 0;
+        string response = null;
+        DigCaseRequest body = new DigCaseRequest { location = SendExpeditionPanel.instance.location.name, caseId = caseId, cost = digCost };
+        yield return NetworkManager.Instance.PostJson(NetworkManager.digCaseEndPoint, body, (code, text) =>
+        {
+            status = code;
+            response = text;
+        });
+        // the animation lasts at least digTime, however fast the API answers
+        float remaining = digTime - (Time.time - start);
+        if (remaining > 0)
+        {
+            yield return new WaitForSeconds(remaining);
+        }
         Destroy(Pickaxe);
         SendExpeditionPanel.instance.isDiging = false;
 
-        //affichage du résultat
-        DisplayResultDigging();
+        if (status == 200)
+        {
+            DigCaseResponse dug = JsonConvert.DeserializeObject<DigCaseResponse>(response);
+            Inventory.Instance.CurrentMoney = dug.money;
+            isClicked = true;
+            //affichage du résultat
+            DisplayResultDigging((EventLocationType)dug.rarity);
+        }
+        else
+        {
+            Unselect();
+            if (status == 402)
+            {
+                MessagePanel.instance.DisplayMessage("Pas assez d'argent !", "Vous n'avez pas assez d'argent pour creuser ici.");
+            }
+            else
+            {
+                MessagePanel.instance.DisplayMessage("Erreur !", "Impossible de creuser, veuillez réessayer ultérieurement !\n" + response);
+            }
+        }
+    }
+
+    private void Unselect()
+    {
+        SendExpeditionPanel.instance.locationButtonSelected = null;
+        border.GetComponent<Image>().color = Color.black;
+        border.SetActive(false);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -111,11 +122,23 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         }
     }
 
-    private void DisplayResultDigging()
+    private void DisplayResultDigging(EventLocationType rarity)
     {
         var image = GetComponent<Image>();
-        var tempColor = image.color;
+        var tempColor = RarityColor(rarity, image.color);
         tempColor.a = 0.2f;
         image.color = tempColor;
+    }
+
+    private static Color RarityColor(EventLocationType rarity, Color noRarity)
+    {
+        switch (rarity)
+        {
+            case EventLocationType.UpToOneBonus: return Color.green;
+            case EventLocationType.UpToTwoBonus: return Color.blue;
+            case EventLocationType.UpToThreeBonus: return Color.magenta;
+            case EventLocationType.UpTofourBonus: return Color.red;
+            default: return noRarity;
+        }
     }
 }

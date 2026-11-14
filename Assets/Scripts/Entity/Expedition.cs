@@ -3,12 +3,14 @@ using UnityEngine;
 
 public class Expedition
 {
+    public string expeditionId;
     public string expeditionName;
     public Location location;
     public List<CrewMember> crewMembers = new List<CrewMember>();
-    public List<Item> items = new List<Item>();
+    public int itemCount;
     public int nbTtotalFloor;
     public int currentFloor = 1;
+    public int floorsCompleted = 0;
     public GameObject panelRun;
     public GameObject positionInGrid;
     public bool over = false;
@@ -21,22 +23,54 @@ public class Expedition
 
     public override string ToString()
     {
-        return "\"" + expeditionName + "\" (" + location.name + ") : " + string.Join("\n", items);
+        return "\"" + expeditionName + "\" (" + location.name + ") : " + itemCount + " objets";
     }
 
     public bool IsOver()
     {
         return panelRun.GetComponent<ExpeditionRunPanel>().endMiniGame;
     }
+
+    /// <summary>The loot found so far: it grows with the floors, up to the items of the chest on the last floor.</summary>
+    public int LootFound()
+    {
+        return itemCount * floorsCompleted / nbTtotalFloor;
+    }
 }
 
 [System.Serializable]
-public class ExpeditionAPI
+public class DigCaseRequest
 {
+    public string location { get; set; }
+    public int caseId { get; set; }
     public int cost { get; set; }
+}
 
-    public ExpeditionAPI(int cost)
-    {
-        this.cost = cost;
-    }
+[System.Serializable]
+public class DigCaseResponse
+{
+    public int rarity { get; set; }
+    public int money { get; set; }
+}
+
+[System.Serializable]
+public class SendExpeditionRequest
+{
+    public string location { get; set; }
+    public int difficulty { get; set; }
+    public int? caseId { get; set; }
+}
+
+[System.Serializable]
+public class SendExpeditionResponse
+{
+    public string expeditionId { get; set; }
+    public int money { get; set; }
+    public int itemCount { get; set; }
+}
+
+[System.Serializable]
+public class OpenChestRequest
+{
+    public string expeditionId { get; set; }
 }
