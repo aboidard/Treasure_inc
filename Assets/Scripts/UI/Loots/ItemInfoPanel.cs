@@ -28,7 +28,17 @@ public class ItemInfoPanel : MonoBehaviour
     public void ShowItemInfo(Item item)
     {
         name.text = item.GetColoredName();
+        // the stats of an equipment are shown with the price, above the description
         properties.text = "Prix : " + item.price;
+        if (item.IsEquipable)
+        {
+            properties.text += "\n<b>" + Equipment.SlotName(item.Slot) + "</b>\n" + Equipment.Describe(item.stats);
+        }
+        // several lines must still fit in the rectangle of the text
+        properties.supportRichText = true;
+        properties.resizeTextMaxSize = Mathf.Max(properties.fontSize, properties.resizeTextMaxSize);
+        properties.resizeTextMinSize = 14;
+        properties.resizeTextForBestFit = true;
         description.text = item.description;
         image.sprite = item.graphics;
 

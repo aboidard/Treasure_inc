@@ -13,6 +13,13 @@ public class Item : ScriptableObject
     public Rarity rarity = Rarity.Common;
     public Sprite graphics;
     public int graphicsId;
+    /// <summary>Null unless the item can be equipped; see Equipment for the content.</summary>
+    public Dictionary<string, object> stats;
+
+    public bool IsEquipable => stats != null;
+
+    /// <summary>The slot number the item is equipped in; 0 when it cannot be equipped.</summary>
+    public int Slot => Equipment.Slot(stats);
 
     public override string ToString()
     {
@@ -103,6 +110,7 @@ public class Item : ScriptableObject
         item.description = itemAPI.description;
         item.graphics = ItemManager.instance.PickSprite(itemAPI.graphics);
         item.graphicsId = itemAPI.graphics;
+        item.stats = itemAPI.stats;
         return item;
     }
 
@@ -171,6 +179,8 @@ public class ItemAPI
     public string rarity { get; set; }
     public int graphics { get; set; }
     public int price { get; set; }
+    /// <summary>Stats of an equipable item, as sent by the server; null for any other item.</summary>
+    public Dictionary<string, object> stats { get; set; }
 
     public ItemAPI()
     {

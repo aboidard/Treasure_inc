@@ -83,19 +83,42 @@ public class ExpeditionManager : MonoBehaviour
         }
     }
 
-    /// <summary>Asks the API to send an expedition; it starts here, and onSuccess is called, once the API accepts it.</summary>
-    public void SendExpedition(Location location, int floor, int? caseId, Action onSuccess = null)
+    /// <summary>
+    /// Asks the API to send an expedition led by a character; it starts here, and onSuccess is called, once the API
+    /// accepts it.
+    /// </summary>
+    public void SendExpedition(Location location, int floor, int? caseId, GameCharacter character, Action onSuccess = null)
     {
         if (expeditionList.Count >= 5) throw new TooMuchExpeditionsException();
 
-        StartCoroutine(PostExpedition(location, floor, caseId, onSuccess));
+        StartCoroutine(PostExpedition(location, floor, caseId, character, onSuccess));
     }
 
-    private IEnumerator PostExpedition(Location location, int floor, int? caseId, Action onSuccess)
+    /// <summary>
+    /// After a restart the expeditions under way are lost, but the server still keeps their character busy until
+    /// their chest is opened: such an expedition comes back at once, so its chest can be opened.
+    /// </summary>
+    public void RecoverLostExpeditions()
+    {
+        foreach (GameCharacter character in CharacterManager.Instance.characters)
+        {
+            if (character.IsAvailable || expeditionList.Any(e => e.expeditionId == character.expeditionId)) continue;
+            if (LootPanelGrid.GetComponentsInChildren<LootButton>().Any(b => b.ex != null && b.ex.expeditionId == character.expeditionId)) continue;
+
+            Expedition lost = new Expedition();
+            lost.expeditionId = character.expeditionId;
+            lost.expeditionName = "Expédition de " + character.name;
+            lost.character = character;
+            lost.over = true;
+            ExpeditionReturn(lost);
+        }
+    }
+
+    private IEnumerator PostExpedition(Location location, int floor, int? caseId, GameCharacter character, Action onSuccess)
     {
         isSending = true;
         Loader.instance.SetLoading(true);
-        SendExpeditionRequest body = new SendExpeditionRequest { location = location.name, difficulty = floor, caseId = caseId };
+        SendExpeditionRequest body = new SendExpeditionRequest { location = location.name, difficulty = floor, caseId = caseId, character = character.num };
         long status = 0;
         string response = null;
         yield return NetworkManager.Instance.PostJson(NetworkManager.sendExpeditionEndPoint, body, (code, text) =>
@@ -109,6 +132,12 @@ public class ExpeditionManager : MonoBehaviour
         if (status == 402)
         {
             MessagePanel.instance.DisplayMessage("Pas assez d'argent !", "Vous n'avez pas assez d'argent pour envoyer cette expédition.");
+            yield break;
+        }
+        if (status == 409)
+        {
+            MessagePanel.instance.DisplayMessage("En expédition", character.name + " est déjà en expédition : ouvrez son coffre pour le revoir.");
+            CharacterManager.Instance.Refresh(ok => { if (ok) RecoverLostExpeditions(); });
             yield break;
         }
         if (status != 200)
@@ -125,6 +154,8 @@ public class ExpeditionManager : MonoBehaviour
         expedition.expeditionName = StringGenerator.ExpeditionNameGenerator();
         expedition.location = location;
         expedition.nbTtotalFloor = floor;
+        expedition.character = character;
+        CharacterManager.Instance.MarkBusy(character.num, sent.expeditionId);
         expedition.positionInGrid = ExpeditionGridPanel.instance.GetFreeSpot(ExpeditionGridPanel.SIZE_S);
         expedition.panelRun = Instantiate(expeditionPanelPrefab, expedition.positionInGrid.transform);
         expedition.panelRun.GetComponent<ExpeditionRunPanel>().SetExpedition(expedition);
