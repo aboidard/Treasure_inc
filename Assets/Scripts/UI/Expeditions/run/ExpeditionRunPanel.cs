@@ -52,7 +52,7 @@ public class ExpeditionRunPanel : MonoBehaviour
             rb.velocity = Vector2.zero;
             rb.constraints = RigidbodyConstraints2D.FreezeAll;
             target.Reach();
-            expedition.items.AddRange(target.GetReward());
+            expedition.floorsCompleted++;
             endMiniGame = true;
             updateUI();
             StartCoroutine(WaitForEnding());
@@ -83,8 +83,7 @@ public class ExpeditionRunPanel : MonoBehaviour
     public void updateUI()
     {
         title.text = expedition.expeditionName + " - étage " + expedition.currentFloor + "/" + expedition.nbTtotalFloor;
-        Debug.Log("lootNumberText " + lootNumberText + " expedition.items " + expedition.items);
-        lootNumberText.text = expedition.items.Count.ToString();
+        lootNumberText.text = expedition.LootFound().ToString();
     }
 
     public void Touch()

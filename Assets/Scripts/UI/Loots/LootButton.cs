@@ -9,7 +9,7 @@ public class LootButton : MonoBehaviour
 
     public void onClick()
     {
-        LootPanel.instance.ShowLoot(ex.items, "l'expedition \"" + ex.expeditionName + "\" est de retour !");
+        LootPanel.instance.ShowLoot(ex.expeditionId, "l'expedition \"" + ex.expeditionName + "\" est de retour !");
         Destroy(lootButton);
     }
 }

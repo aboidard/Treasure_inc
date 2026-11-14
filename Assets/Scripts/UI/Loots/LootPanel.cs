@@ -1,9 +1,7 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Networking;
 using Newtonsoft.Json;
 
 public class LootPanel : MonoBehaviour
@@ -30,56 +28,44 @@ public class LootPanel : MonoBehaviour
         ClosePanel();
     }
 
-    public void ShowLoot(List<Item> items, string title)
+    public void ShowLoot(string expeditionId, string title)
     {
         lootTitle.text = title;
         InitPanel();
         OpenPanel();
-        StartCoroutine(AddItem(items.Count));
+        StartCoroutine(OpenChest(expeditionId));
     }
 
-    IEnumerator AddItem(int nb)
+    IEnumerator OpenChest(string expeditionId)
     {
         Loader.instance.SetLoading(true);
-        var apiEndPoint = NetworkManager.addUserItemsEndPoint;
-        using (UnityWebRequest webRequest = UnityWebRequest.Put(String.Format(NetworkManager.apiUrl + apiEndPoint, NetworkManager.Instance.publicKey), "{\"nb\":" + nb + "}"))
+        long status = 0;
+        string response = null;
+        yield return NetworkManager.Instance.PostJson(NetworkManager.addUserItemsEndPoint,
+            new OpenChestRequest { expeditionId = expeditionId }, (code, text) =>
+            {
+                status = code;
+                response = text;
+            });
+        Loader.instance.SetLoading(false);
+
+        if (status != 201)
         {
-            webRequest.method = "POST";
-            webRequest.SetRequestHeader("X-PRIVATE-KEY", NetworkManager.Instance.privateKey);
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-            Debug.Log("SendWebRequest : " + webRequest);
-            yield return webRequest.SendWebRequest();
-            try
-            {
-                if (webRequest.result == UnityWebRequest.Result.ConnectionError)
-                {
-                    Debug.LogError("ConnectionException: " + webRequest.error);
-                    throw new ConnectionException(webRequest.error);
-                }
-
-                Debug.Log("Received: " + webRequest.downloadHandler.text);
-                List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
-                this.items = new List<Item>();
-                foreach (ItemAPI it in itemsFromJSON)
-                {
-                    Item myItem = Item.CreateItemAPI(it);
-                    this.items.Add(myItem);
-
-                    //add the item to the inventory
-                    Inventory.Instance.AddItem(myItem);
-                }
-                FillPanel();
-            }
-            catch (ConnectionException e)
-            {
-                Debug.Log("Error: " + e.Message);
-                MessagePanel.instance.DisplayMessage("Erreur !", "Impossible de se connecter, veuillez réessayer ultérieurement !\n" + e.Message);
-            }
-            finally
-            {
-                Loader.instance.SetLoading(false);
-            }
+            MessagePanel.instance.DisplayMessage("Erreur !", "Impossible d'ouvrir le coffre, veuillez réessayer ultérieurement !\n" + response);
+            yield break;
         }
+
+        List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(response);
+        this.items = new List<Item>();
+        foreach (ItemAPI it in itemsFromJSON)
+        {
+            Item myItem = Item.CreateItemAPI(it);
+            this.items.Add(myItem);
+
+            //add the item to the inventory
+            Inventory.Instance.AddItem(myItem);
+        }
+        FillPanel();
     }
 
     public void OpenPanel()

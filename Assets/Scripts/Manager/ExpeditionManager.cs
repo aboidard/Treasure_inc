@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
@@ -11,6 +13,7 @@ public class ExpeditionManager : MonoBehaviour
     public GameObject expeditionsPanelGrid;
     public GameObject LootPanelGrid;
     public GameObject LootButtonPrefab;
+    public bool isSending;
 
     void Awake()
     {
@@ -80,15 +83,45 @@ public class ExpeditionManager : MonoBehaviour
         }
     }
 
-    public Expedition SendExpedition(Location location, int floor)
+    /// <summary>Asks the API to send an expedition; it starts here, and onSuccess is called, once the API accepts it.</summary>
+    public void SendExpedition(Location location, int floor, int? caseId, Action onSuccess = null)
     {
-        int cost = ComputeCost(floor, location);
-
-        if (Inventory.Instance.CurrentMoney < cost) throw new NotEnoughtMoneyException();
         if (expeditionList.Count >= 5) throw new TooMuchExpeditionsException();
 
-        Inventory.Instance.SubtractMoney(cost);
+        StartCoroutine(PostExpedition(location, floor, caseId, onSuccess));
+    }
+
+    private IEnumerator PostExpedition(Location location, int floor, int? caseId, Action onSuccess)
+    {
+        isSending = true;
+        Loader.instance.SetLoading(true);
+        SendExpeditionRequest body = new SendExpeditionRequest { location = location.name, difficulty = floor, caseId = caseId };
+        long status = 0;
+        string response = null;
+        yield return NetworkManager.Instance.PostJson(NetworkManager.sendExpeditionEndPoint, body, (code, text) =>
+        {
+            status = code;
+            response = text;
+        });
+        Loader.instance.SetLoading(false);
+        isSending = false;
+
+        if (status == 402)
+        {
+            MessagePanel.instance.DisplayMessage("Pas assez d'argent !", "Vous n'avez pas assez d'argent pour envoyer cette expédition.");
+            yield break;
+        }
+        if (status != 200)
+        {
+            MessagePanel.instance.DisplayMessage("Erreur !", "Impossible d'envoyer l'expédition, veuillez réessayer ultérieurement !\n" + response);
+            yield break;
+        }
+
+        SendExpeditionResponse sent = JsonConvert.DeserializeObject<SendExpeditionResponse>(response);
+        Inventory.Instance.CurrentMoney = sent.money;
         Expedition expedition = new Expedition();
+        expedition.expeditionId = sent.expeditionId;
+        expedition.itemCount = sent.itemCount;
         expedition.expeditionName = StringGenerator.ExpeditionNameGenerator();
         expedition.location = location;
         expedition.nbTtotalFloor = floor;
@@ -98,11 +131,8 @@ public class ExpeditionManager : MonoBehaviour
         expedition.Init();
         expeditionList.Add(expedition);
 
-        string[] expeditionJson = { JsonConvert.SerializeObject(new ExpeditionAPI(cost)) };
-        //NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.SEND_EXPEDITION, expeditionJson));
-
         Debug.Log("Expedition send " + expedition);
-        return expedition;
+        onSuccess?.Invoke();
     }
 
     public void ExpeditionReturn(Expedition ex)
@@ -112,15 +142,16 @@ public class ExpeditionManager : MonoBehaviour
         lootButton.GetComponent<LootButton>().ex = ex;
     }
 
+    /// <summary>The cost to display before sending: what is really paid is decided by the engine.</summary>
     public int ComputeCost(int time, Location location)
     {
-        int cost = time * 1000 * location.level;
+        int cost = time * 100 * location.level;
 
         return cost;
     }
     public Item GenerateItem()
     {
-        int randomInt = Random.Range(1, ItemsDatabase.instance.allItems.Length + 1);
+        int randomInt = UnityEngine.Random.Range(1, ItemsDatabase.instance.allItems.Length + 1);
         return ItemsDatabase.instance.allItems.Single(x => x.id == randomInt);
     }
 }

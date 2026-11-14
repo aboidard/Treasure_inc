@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))
         {
             Location location = LocationsDatabase.instance.allLocations.Single(x => x.id == 1);
-            ExpeditionManager.instance.SendExpedition(location, 10);
+            ExpeditionManager.instance.SendExpedition(location, 10, null);
         }
         if (Input.GetKeyDown(KeyCode.L))
         {

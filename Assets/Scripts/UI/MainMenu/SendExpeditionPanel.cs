@@ -44,6 +44,8 @@ public class SendExpeditionPanel : Panel
 
     public void OnClickNextLocation()
     {
+        if (isDiging) return;
+
         int NextLocationId = location.id + 1;
         if (NextLocationId > LocationsDatabase.instance.allLocations.Count())
         {
@@ -56,6 +58,8 @@ public class SendExpeditionPanel : Panel
     }
     public void OnClickPreviousLocation()
     {
+        if (isDiging) return;
+
         int previousLocationId = location.id - 1;
         if (previousLocationId == 0)
         {
@@ -75,18 +79,21 @@ public class SendExpeditionPanel : Panel
 
     public void OnClickSend()
     {
-        if (locationButtonSelected != null)
+        if (isDiging || ExpeditionManager.instance.isSending) return;
+
+        int? caseId = locationButtonSelected != null ? locationButtonSelected.caseId : (int?)null;
+        ExpeditionManager.instance.SendExpedition(location, floor, caseId, () =>
         {
-            Debug.Log("location button Event : " + locationButtonSelected.locationEvent[0]);
-        }
-        Expedition expedition = ExpeditionManager.instance.SendExpedition(location, floor);
-        //MessagePanel.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
-        DestroyGridLocation();
-        Close();
+            //MessagePanel.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
+            DestroyGridLocation();
+            Close();
+        });
     }
 
     private void DestroyGridLocation()
     {
+        // a dig under way stops with its button
+        isDiging = false;
         for (int i = 0; i < locationGridPanel.transform.childCount; i++)
         {
             Destroy(locationGridPanel.transform.GetChild(i).gameObject);
@@ -99,6 +106,7 @@ public class SendExpeditionPanel : Panel
         {
             GameObject button = Instantiate(locationGridButtonPrefab, locationGridPanel.transform);
             LocationGridButton buttonScript = button.GetComponent<LocationGridButton>();
+            buttonScript.caseId = i;
 
             button.GetComponent<Button>().onClick.AddListener(delegate { buttonScript.ClickLocation(); });
         }
