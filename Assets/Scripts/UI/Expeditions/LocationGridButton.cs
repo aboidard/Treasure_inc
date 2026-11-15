@@ -27,6 +27,11 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         {
             return;
         }
+        // nothing to dig for while nobody can leave on an expedition
+        if (!this.isClicked && !SendExpeditionPanel.instance.CheckCharacterAvailable())
+        {
+            return;
+        }
 
         if (SendExpeditionPanel.instance.locationButtonSelected != null)
         {
@@ -86,6 +91,11 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             if (status == 402)
             {
                 MessagePanel.instance.DisplayMessage("Pas assez d'argent !", "Vous n'avez pas assez d'argent pour creuser ici.");
+            }
+            else if (status == 409)
+            {
+                MessagePanel.instance.DisplayMessage("Personne de disponible", "Tous vos personnages sont en expédition. Ouvrez le coffre d'une expédition revenue pour en retrouver un.");
+                CharacterManager.Instance.Refresh(ok => { if (ok) ExpeditionManager.instance.RecoverLostExpeditions(); });
             }
             else
             {

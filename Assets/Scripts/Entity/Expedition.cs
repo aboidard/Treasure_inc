@@ -7,6 +7,8 @@ public class Expedition
     public string expeditionName;
     public Location location;
     public List<CrewMember> crewMembers = new List<CrewMember>();
+    /// <summary>The character leading the expedition: the one shown in the mini game, busy until the chest is opened.</summary>
+    public GameCharacter character;
     public int itemCount;
     public int nbTtotalFloor;
     public int currentFloor = 1;
@@ -23,7 +25,7 @@ public class Expedition
 
     public override string ToString()
     {
-        return "\"" + expeditionName + "\" (" + location.name + ") : " + itemCount + " objets";
+        return "\"" + expeditionName + "\" (" + (location != null ? location.name : "?") + ") : " + itemCount + " objets";
     }
 
     public bool IsOver()
@@ -59,6 +61,8 @@ public class SendExpeditionRequest
     public string location { get; set; }
     public int difficulty { get; set; }
     public int? caseId { get; set; }
+    /// <summary>Number of the character leading the expedition.</summary>
+    public int character { get; set; }
 }
 
 [System.Serializable]

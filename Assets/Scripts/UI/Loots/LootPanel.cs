@@ -51,9 +51,16 @@ public class LootPanel : MonoBehaviour
 
         if (status != 201)
         {
+            // the server knows whether the character of the expedition is back; if it is not, the chest can be
+            // opened again later
+            CharacterManager.Instance.Refresh(ok => { if (ok) ExpeditionManager.instance.RecoverLostExpeditions(); });
             MessagePanel.instance.DisplayMessage("Erreur !", "Impossible d'ouvrir le coffre, veuillez réessayer ultérieurement !\n" + response);
             yield break;
         }
+
+        // the chest is opened: the character of the expedition is available again
+        CharacterManager.Instance.MarkFree(expeditionId);
+        if (TeamPanel.instance != null) TeamPanel.instance.RenderIfOpen();
 
         List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(response);
         this.items = new List<Item>();
@@ -94,11 +101,7 @@ public class LootPanel : MonoBehaviour
                 Debug.LogError("Object Panel prefab is missing ObjectPanel script.");
                 return;
             }
-            objectPanel.itemName.text = this.items[i].name;
-            objectPanel.itemImage.sprite = this.items[i].graphics;
-            objectPanel.itemBorder.color = Item.getRarityColor(this.items[i].rarity);
-
-            objectPanel.item = this.items[i];
+            objectPanel.SetItem(this.items[i]);
         }
     }
 

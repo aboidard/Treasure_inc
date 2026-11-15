@@ -77,16 +77,46 @@ public class SendExpeditionPanel : Panel
         UpdateUI();
     }
 
+    /// <summary>
+    /// An expedition needs a character to lead it: false, with a message, while they are all on an expedition.
+    /// Nothing can then be dug or sent until the chest of one of their expeditions is opened.
+    /// </summary>
+    public bool CheckCharacterAvailable()
+    {
+        if (CharacterManager.Instance.AnyAvailable()) return true;
+
+        MessagePanel.instance.DisplayMessage("Personne de disponible", "Tous vos personnages sont en expédition. Ouvrez le coffre d'une expédition revenue pour en retrouver un.");
+        return false;
+    }
+
     public void OnClickSend()
     {
         if (isDiging || ExpeditionManager.instance.isSending) return;
+        if (!CheckCharacterAvailable()) return;
 
-        int? caseId = locationButtonSelected != null ? locationButtonSelected.caseId : (int?)null;
-        ExpeditionManager.instance.SendExpedition(location, floor, caseId, () =>
+        if (!CharacterManager.Instance.loaded)
         {
-            //MessagePanel.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
-            DestroyGridLocation();
-            Close();
+            // the characters could not be read when the game started: try again before asking who leaves
+            CharacterManager.Instance.Refresh(ok =>
+            {
+                if (ok) OnClickSend();
+                else MessagePanel.instance.DisplayMessage("Erreur !", "Les personnages n'ont pas pu être chargés, veuillez réessayer ultérieurement !");
+            });
+            return;
+        }
+
+        // the user chooses who leads the expedition, then it is sent
+        CharacterChooser.Show(panel.transform, locationText, panel.GetComponent<Image>().sprite, character =>
+        {
+            if (isDiging || ExpeditionManager.instance.isSending) return;
+
+            int? caseId = locationButtonSelected != null ? locationButtonSelected.caseId : (int?)null;
+            ExpeditionManager.instance.SendExpedition(location, floor, caseId, character, () =>
+            {
+                //MessagePanel.instance.DisplayMessage("Equipe envoyée !", "l'éxpédition \"" + expedition.name + "\" à été envoyée en " + location.name + " pour une durée de " + time + " mois !");
+                DestroyGridLocation();
+                Close();
+            });
         });
     }
 

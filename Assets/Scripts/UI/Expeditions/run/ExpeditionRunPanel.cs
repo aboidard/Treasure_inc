@@ -28,6 +28,14 @@ public class ExpeditionRunPanel : MonoBehaviour
     private void Start()
     {
         crewMember = Instantiate(crewMemberPrefab, crewViewport.transform);
+        // the character leading the expedition is the one walking
+        Transform crewImage = crewMember.transform.Find("CrewImage");
+        if (crewImage != null && expedition != null && expedition.character != null && expedition.character.graphics != null)
+        {
+            Image image = crewImage.GetComponent<Image>();
+            image.sprite = expedition.character.graphics;
+            image.preserveAspect = true;
+        }
         Background = Instantiate(BackgroundDatabase.instance.PickBackground(Biome.MINE), this.transform);
         Background.transform.SetSiblingIndex(0);
         crewMember.transform.SetSiblingIndex(0);

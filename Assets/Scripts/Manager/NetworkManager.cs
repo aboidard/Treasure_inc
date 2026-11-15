@@ -37,6 +37,10 @@ public class NetworkManager : MonoBehaviour
     public static string removeUserItemsEndPoint = "/V1/user/{0}/sellitems";
     public static string sendExpeditionEndPoint = "/V1/user/{0}/expedition";
     public static string digCaseEndPoint = "/V1/user/{0}/expedition/dig";
+    public static string charactersEndPoint = "/V1/user/{0}/characters";
+    // {1} is the number of the character
+    public static string equipItemEndPoint = "/V1/user/{0}/characters/{1}/equip";
+    public static string unequipItemEndPoint = "/V1/user/{0}/characters/{1}/unequip";
 
     public static NetworkManager Instance
     {
@@ -62,6 +66,31 @@ public class NetworkManager : MonoBehaviour
     private void Start()
     {
         LoadAndSaveData.instance.LoadUserKeys();
+    }
+
+    /// <summary>
+    /// Reads an end point of the current user, then calls onDone with the HTTP status and the response text;
+    /// the status is 0 and the text is the error when the API could not be reached.
+    /// </summary>
+    public IEnumerator GetJson(string endPoint, Action<long, string> onDone)
+    {
+        string url = String.Format(apiUrl + endPoint, publicKey);
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        {
+            webRequest.SetRequestHeader("X-PRIVATE-KEY", privateKey);
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.LogError("ConnectionException: " + webRequest.error);
+                onDone(0, webRequest.error);
+            }
+            else
+            {
+                Debug.Log("Received: " + webRequest.downloadHandler.text);
+                onDone(webRequest.responseCode, webRequest.downloadHandler.text);
+            }
+        }
     }
 
     /// <summary>
