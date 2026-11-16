@@ -65,10 +65,10 @@ public class ObjectPanel : MonoBehaviour
 
     public void OnClickInfoButton()
     {
-        // while a slot is being filled, a click on an item equips it
+        // while a slot is being filled, a click on an item shows what it changes, and a second one equips it
         if (InventoryPanel.instance != null && InventoryPanel.instance.IsEquipMode && InventoryPanel.instance.OwnsPanel(this))
         {
-            InventoryPanel.instance.EquipItem(item);
+            InventoryPanel.instance.SelectForEquip(this);
             return;
         }
         ItemInfoPanel.instance.ShowItemInfo(item);

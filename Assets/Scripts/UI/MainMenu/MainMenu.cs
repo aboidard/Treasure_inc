@@ -153,6 +153,7 @@ public class MainMenu : MonoBehaviour
                 }
 
                 Loader.instance.SetLoading(false);
+                SoundManager.Play(Sfx.GameStart);
                 SceneManager.LoadScene("MainScene");
             }
         }

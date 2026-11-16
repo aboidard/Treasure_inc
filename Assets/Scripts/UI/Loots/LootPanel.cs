@@ -73,6 +73,8 @@ public class LootPanel : MonoBehaviour
             Inventory.Instance.AddItem(myItem);
         }
         FillPanel();
+        bool rare = this.items.Exists(item => item.rarity == Rarity.Epic || item.rarity == Rarity.Legendary);
+        SoundManager.Play(rare ? Sfx.RareItem : Sfx.ItemsFound);
     }
 
     public void OpenPanel()

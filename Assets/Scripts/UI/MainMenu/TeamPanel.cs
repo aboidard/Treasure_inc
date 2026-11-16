@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 /// <summary>
@@ -9,8 +10,11 @@ using UnityEngine.UI;
 /// The script finds its elements by name in the hierarchy of the panel:
 ///   Crew/Photo, Crew/Inventory/Photo_1     portrait of the selected character
 ///   Crew/Inventory/GameObject[_1.._8]      the 9 slots, each with an "Image" and a "Border"
-///   Crew/Description/Text                  name, stats and state of the selected character
-///   ListCrewMask/ListCrew/*                one portrait per character, in the order of their numbers
+///   Crew/Description/Text                  name, rank, stats and state of the selected character
+///   ListCrewMask/ListCrew/*                the portraits of the characters 1, 2, 3... (the art of the project);
+///                                          the first one is the model of the list, which holds one portrait per
+///                                          character of the user and scrolls sideways
+/// The "équipe" button of the main menu opens a menu (CrewMenu) leading here or to the recruitment (RecruitPanel).
 /// </summary>
 public class TeamPanel : Panel
 {
@@ -44,16 +48,19 @@ public class TeamPanel : Panel
 
     private class CrewView
     {
+        public int num;
+        public GameObject member;
         public Image portrait;
         public Image border;
-        public Color borderColor;
     }
 
     private readonly List<SlotView> slots = new List<SlotView>();
     private readonly List<CrewView> crew = new List<CrewView>();
+    private Transform listCrew;
+    private GameObject crewModel;
+    private Color crewBorderColor;
     private Image photo;
     private Image photoBackground;
-    private float photoBackgroundAlpha;
     private Text description;
     private int selected = 1;
 
@@ -72,10 +79,10 @@ public class TeamPanel : Panel
         Transform root = panel.transform;
         photo = UIBuilder.Find(root, "Crew/Photo").GetComponent<Image>();
         photoBackground = UIBuilder.Find(root, "Crew/Inventory/Photo_1").GetComponent<Image>();
-        photoBackgroundAlpha = photoBackground.color.a;
         // the big portrait is behind the slots: it must not take their clicks
         photoBackground.raycastTarget = false;
         description = UIBuilder.Find(root, "Crew/Description/Text").GetComponent<Text>();
+        description.supportRichText = true;
 
         // the prototype was hidden behind this text
         Transform soon = root.Find("SOON");
@@ -99,22 +106,24 @@ public class TeamPanel : Panel
             slots.Add(view);
         }
 
-        Transform listCrew = UIBuilder.Find(root, "ListCrewMask/ListCrew");
+        listCrew = UIBuilder.Find(root, "ListCrewMask/ListCrew");
         List<Sprite> portraits = new List<Sprite>();
         for (int i = 0; i < listCrew.childCount; i++)
         {
-            Transform member = listCrew.GetChild(i);
-            CrewView view = new CrewView
-            {
-                portrait = member.GetComponent<Image>(),
-                border = UIBuilder.Find(member, "Image").GetComponent<Image>(),
-            };
-            view.borderColor = view.border.color;
-            portraits.Add(view.portrait.sprite);
-            int num = i + 1;
-            member.gameObject.AddComponent<Button>().onClick.AddListener(() => OnClickCharacter(num));
-            crew.Add(view);
+            portraits.Add(listCrew.GetChild(i).GetComponent<Image>().sprite);
         }
+        // the list is filled again from its first portrait, with the characters the user really has
+        crewModel = listCrew.GetChild(0).gameObject;
+        crewBorderColor = UIBuilder.Find(crewModel.transform, "Image").GetComponent<Image>().color;
+        for (int i = listCrew.childCount - 1; i >= 1; i--)
+        {
+            Destroy(listCrew.GetChild(i).gameObject);
+        }
+        crewModel.SetActive(false);
+        MakeCrewListScroll();
+
+        HookMenuButton();
+        RecruitPanel.Create(panel);
 
         CharacterManager.Instance.SetPortraits(portraits);
         CharacterManager.Instance.Refresh(ok =>
@@ -123,6 +132,54 @@ public class TeamPanel : Panel
             ExpeditionManager.instance.RecoverLostExpeditions();
             if (IsOpen()) Render();
         });
+    }
+
+    /// <summary>The characters stay on one row, which scrolls sideways once it is wider than the panel.</summary>
+    private void MakeCrewListScroll()
+    {
+        RectTransform content = listCrew.GetComponent<RectTransform>();
+        RectTransform viewport = listCrew.parent.GetComponent<RectTransform>();
+
+        GridLayoutGroup grid = content.GetComponent<GridLayoutGroup>();
+        grid.constraint = GridLayoutGroup.Constraint.FixedRowCount;
+        grid.constraintCount = 1;
+        content.anchorMin = content.anchorMax = new Vector2(0f, 0.5f);
+        content.pivot = new Vector2(0f, 0.5f);
+        content.anchoredPosition = Vector2.zero;
+        content.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        viewport.gameObject.AddComponent<RectMask2D>();
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = content;
+        scroll.viewport = viewport;
+        scroll.horizontal = true;
+        scroll.vertical = false;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+    }
+
+    /// <summary>
+    /// The button of the main menu was bound to Show in the scene: it now opens the menu of the crew, from which
+    /// this panel and the recruitment are opened.
+    /// </summary>
+    private void HookMenuButton()
+    {
+        foreach (Button button in FindObjectsOfType<Button>(true))
+        {
+            Button.ButtonClickedEvent click = button.onClick;
+            for (int i = 0; i < click.GetPersistentEventCount(); i++)
+            {
+                if (click.GetPersistentTarget(i) != this || click.GetPersistentMethodName(i) != "Show") continue;
+                click.SetPersistentListenerState(i, UnityEventCallState.Off);
+                RectTransform anchor = button.GetComponent<RectTransform>();
+                click.AddListener(() => CrewMenu.Toggle(anchor));
+            }
+        }
+    }
+
+    /// <summary>Opens the panel, unless it is already open.</summary>
+    public void OpenTeam()
+    {
+        if (!IsOpen()) Show();
     }
 
     protected override void WillShow()
@@ -162,23 +219,28 @@ public class TeamPanel : Panel
         if (IsOpen()) Render();
     }
 
-    /// <summary>Shows the selected character again, e.g. after its equipment changed.</summary>
+    /// <summary>Shows the characters and the selected one again, e.g. after its equipment changed or a recruitment.</summary>
     public void Render()
     {
+        List<GameCharacter> characters = CharacterManager.Instance.characters;
+        if (CharacterManager.Instance.Get(selected) == null && characters.Count > 0)
+        {
+            selected = characters[0].num;
+        }
         GameCharacter character = CharacterManager.Instance.Get(selected);
 
-        for (int i = 0; i < crew.Count; i++)
+        FillCrewList(characters);
+        foreach (CrewView view in crew)
         {
-            GameCharacter member = CharacterManager.Instance.Get(i + 1);
-            crew[i].border.color = i + 1 == selected ? selectedColor : crew[i].borderColor;
-            crew[i].portrait.color = member != null && !member.IsAvailable ? awayColor : Color.white;
+            GameCharacter member = CharacterManager.Instance.Get(view.num);
+            view.border.color = view.num == selected ? selectedColor : crewBorderColor;
+            view.portrait.color = member != null && !member.IsAvailable ? awayColor : Color.white;
         }
 
-        Sprite portrait = selected >= 1 && selected <= crew.Count ? crew[selected - 1].portrait.sprite : null;
-        if (portrait != null)
+        if (character != null && character.graphics != null)
         {
-            photo.sprite = portrait;
-            photoBackground.sprite = portrait;
+            photo.sprite = character.graphics;
+            photoBackground.sprite = character.graphics;
         }
 
         foreach (SlotView view in slots)
@@ -200,17 +262,59 @@ public class TeamPanel : Panel
         description.text = Describe(character);
     }
 
+    /// <summary>One portrait per character, in the order of their numbers; rebuilt only when the crew changed.</summary>
+    private void FillCrewList(List<GameCharacter> characters)
+    {
+        if (crew.Select(view => view.num).SequenceEqual(characters.Select(character => character.num))) return;
+
+        foreach (CrewView view in crew)
+        {
+            Destroy(view.member);
+        }
+        crew.Clear();
+        foreach (GameCharacter character in characters)
+        {
+            GameObject member = Instantiate(crewModel, listCrew);
+            member.name = "CrewMember" + character.num;
+            member.SetActive(true);
+            CrewView view = new CrewView
+            {
+                num = character.num,
+                member = member,
+                portrait = member.GetComponent<Image>(),
+                border = UIBuilder.Find(member.transform, "Image").GetComponent<Image>(),
+            };
+            view.portrait.sprite = character.graphics;
+
+            Text rank = UIBuilder.Text(UIBuilder.Child("Rank", member.transform, new Vector2(0.08f, 0.03f), new Vector2(0.7f, 0.24f)),
+                description, character.rank, 40, TextAnchor.MiddleLeft);
+            rank.color = CharacterRank.Color(character.rank);
+            Outline outline = rank.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.85f);
+            outline.effectDistance = new Vector2(2f, -2f);
+
+            int num = character.num;
+            member.AddComponent<Button>().onClick.AddListener(() => OnClickCharacter(num));
+            crew.Add(view);
+        }
+    }
+
     private static string Describe(GameCharacter character)
     {
         if (character == null)
         {
             return "Chargement...";
         }
-        string text = character.name + "\n--------------------\n";
+        string text = character.name + "\nRang " + CharacterRank.Colored(character.rank);
+        if (character.copies > 1)
+        {
+            text += "   x" + character.copies;
+        }
+        text += "\n--------------------\n";
         if (!character.IsAvailable)
         {
             text += "<color=red>En expédition</color>\n";
         }
-        return text + Equipment.DescribeTotal(character.equipment.Values);
+        return text + Equipment.DescribeTotal(character.equipment.Values, character.stats);
     }
 }

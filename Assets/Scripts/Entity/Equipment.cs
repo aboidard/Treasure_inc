@@ -107,10 +107,17 @@ public static class Equipment
         return string.Join(" ", parts);
     }
 
-    /// <summary>The sum of each stat over several items, as lines ("Force +12"), then every skill once.</summary>
-    public static string DescribeTotal(IEnumerable<Item> items)
+    /// <summary>
+    /// The sum of each stat over several items, as lines ("Force +12"), then every skill once.
+    /// baseStats are the stats of the character wearing the items, added to the sums; null for none.
+    /// </summary>
+    public static string DescribeTotal(IEnumerable<Item> items, Dictionary<string, object> baseStats = null)
     {
         Dictionary<string, object> total = new Dictionary<string, object>();
+        foreach (var stat in statNames)
+        {
+            total[stat.Key] = Number(baseStats, stat.Key);
+        }
         HashSet<string> skills = new HashSet<string>();
         foreach (Item item in items)
         {
@@ -130,6 +137,48 @@ public static class Equipment
             lines.Add("<i>" + SkillDescription(skill) + "</i>");
         }
         return string.Join("\n", lines);
+    }
+
+    public enum ChangeKind { StatUp, StatDown, SkillGained, SkillLost }
+
+    /// <summary>One difference between two items of the same slot, e.g. StatUp "Force +3".</summary>
+    public struct Change
+    {
+        public ChangeKind kind;
+        public string text;
+
+        public bool IsGood => kind == ChangeKind.StatUp || kind == ChangeKind.SkillGained;
+        public bool IsSkill => kind == ChangeKind.SkillGained || kind == ChangeKind.SkillLost;
+    }
+
+    /// <summary>
+    /// What changes for a character when the stats "current" are replaced by "next": the stats that differ, then
+    /// the skills gained, then those lost. Either can be null (empty slot).
+    /// </summary>
+    public static List<Change> Compare(Dictionary<string, object> current, Dictionary<string, object> next)
+    {
+        List<Change> changes = new List<Change>();
+        foreach (var stat in statNames)
+        {
+            int delta = Number(next, stat.Key) - Number(current, stat.Key);
+            if (delta == 0) continue;
+            changes.Add(new Change
+            {
+                kind = delta > 0 ? ChangeKind.StatUp : ChangeKind.StatDown,
+                text = stat.Value + " " + Signed(delta),
+            });
+        }
+        List<string> before = Skills(current);
+        List<string> after = Skills(next);
+        foreach (string skill in after.Except(before))
+        {
+            changes.Add(new Change { kind = ChangeKind.SkillGained, text = SkillDescription(skill) });
+        }
+        foreach (string skill in before.Except(after))
+        {
+            changes.Add(new Change { kind = ChangeKind.SkillLost, text = SkillDescription(skill) });
+        }
+        return changes;
     }
 
     // Json.NET reads the numbers of an untyped object as long

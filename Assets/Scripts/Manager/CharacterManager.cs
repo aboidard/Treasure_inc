@@ -8,17 +8,15 @@ using Newtonsoft.Json;
 /// <summary>
 /// The characters of the user and their equipment, as known by the server: every change goes through the API,
 /// which answers the characters afterwards. An equipped item leaves the inventory, and comes back when taken off.
+/// The user starts with a few characters and recruits the others by drawing them in a portal (see Recruit).
 /// </summary>
 public class CharacterManager : MonoBehaviour
 {
     private static CharacterManager _Instance;
 
-    // local to the client, by character number - 1: the server only knows the numbers
-    private static readonly string[] names = { "Kentucky Johanes", "Brok le quartier-maître", "Vax le caporal" };
-
     public List<GameCharacter> characters = new List<GameCharacter>();
-    /// <summary>The portraits by character number - 1, given by the TeamPanel of the scene.</summary>
-    private List<Sprite> portraits = new List<Sprite>();
+    /// <summary>The portals the characters are summoned from; empty until LoadPortals succeeded.</summary>
+    public List<PortalAPI> portals = new List<PortalAPI>();
     public bool loaded = false;
     public bool isBusy = false;
 
@@ -35,12 +33,13 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
+    /// <summary>The portraits of the characters 1, 2, 3..., given by the TeamPanel of the scene (see CharacterArt).</summary>
     public void SetPortraits(List<Sprite> sprites)
     {
-        portraits = sprites;
+        CharacterArt.SetBases(sprites);
         foreach (GameCharacter character in characters)
         {
-            character.graphics = Portrait(character.num);
+            character.graphics = CharacterArt.Portrait(character.num);
         }
     }
 
@@ -58,7 +57,8 @@ public class CharacterManager : MonoBehaviour
     /// <summary>Reads the characters from the server, then calls onDone with true when they were received.</summary>
     public void Refresh(Action<bool> onDone = null)
     {
-        StartCoroutine(Request(NetworkManager.Instance.GetJson(NetworkManager.charactersEndPoint, Received), onDone, false));
+        StartCoroutine(Request(NetworkManager.Instance.GetJson(NetworkManager.charactersEndPoint, Received), onDone, null,
+            response => Apply(JsonConvert.DeserializeObject<List<CharacterAPI>>(response))));
     }
 
     /// <summary>Equips an item of the inventory in the slot of the character; the previous item goes back to the inventory.</summary>
@@ -66,7 +66,8 @@ public class CharacterManager : MonoBehaviour
     {
         string endPoint = String.Format(NetworkManager.equipItemEndPoint, "{0}", character.num);
         EquipItemRequest body = new EquipItemRequest { slot = slot, itemId = item.id };
-        StartCoroutine(Request(NetworkManager.Instance.PostJson(endPoint, body, Received), onDone, true));
+        StartCoroutine(Request(NetworkManager.Instance.PostJson(endPoint, body, Received), onDone, EquipmentError,
+            response => Apply(JsonConvert.DeserializeObject<List<CharacterAPI>>(response))));
     }
 
     /// <summary>Empties the slot of the character: its item goes back to the inventory.</summary>
@@ -74,7 +75,34 @@ public class CharacterManager : MonoBehaviour
     {
         string endPoint = String.Format(NetworkManager.unequipItemEndPoint, "{0}", character.num);
         UnequipItemRequest body = new UnequipItemRequest { slot = slot };
-        StartCoroutine(Request(NetworkManager.Instance.PostJson(endPoint, body, Received), onDone, true));
+        StartCoroutine(Request(NetworkManager.Instance.PostJson(endPoint, body, Received), onDone, EquipmentError,
+            response => Apply(JsonConvert.DeserializeObject<List<CharacterAPI>>(response))));
+    }
+
+    /// <summary>Reads the portals from the server, then calls onDone with true when they were received.</summary>
+    public void LoadPortals(Action<bool> onDone = null)
+    {
+        StartCoroutine(Request(NetworkManager.Instance.GetJson(NetworkManager.portalsEndPoint, Received), onDone, null,
+            response => portals = JsonConvert.DeserializeObject<List<PortalAPI>>(response) ?? new List<PortalAPI>()));
+    }
+
+    /// <summary>
+    /// Pays for "count" draws in the portal. The server chooses the characters: onDone receives them in the order
+    /// they were drawn, once the characters and the money of the user are up to date, or null when nothing was drawn
+    /// (the message is already shown).
+    /// </summary>
+    public void Recruit(PortalAPI portal, int count, Action<RecruitResponse> onDone)
+    {
+        RecruitRequest body = new RecruitRequest { portal = portal.id, count = count };
+        RecruitResponse drawn = null;
+        StartCoroutine(Request(NetworkManager.Instance.PostJson(NetworkManager.recruitEndPoint, body, Received),
+            ok => onDone?.Invoke(ok ? drawn : null), RecruitError,
+            response =>
+            {
+                drawn = JsonConvert.DeserializeObject<RecruitResponse>(response);
+                Apply(drawn.characters);
+                Inventory.Instance.CurrentMoney = drawn.money;
+            }));
     }
 
     /// <summary>The character leads this expedition until its chest is opened.</summary>
@@ -102,7 +130,10 @@ public class CharacterManager : MonoBehaviour
         lastResponse = response;
     }
 
-    private IEnumerator Request(IEnumerator call, Action<bool> onDone, bool showErrors)
+    /// <param name="errorMessage">the message shown for a status and a response when the request fails; null: no message</param>
+    /// <param name="onResponse">reads the response of a successful request</param>
+    private IEnumerator Request(IEnumerator call, Action<bool> onDone, Func<long, string, string> errorMessage,
+        Action<string> onResponse)
     {
         // one request at a time: the answer of a request replaces every character
         while (isBusy) yield return null;
@@ -115,20 +146,20 @@ public class CharacterManager : MonoBehaviour
         bool ok = lastStatus == 200;
         if (ok)
         {
-            Apply(JsonConvert.DeserializeObject<List<CharacterAPI>>(lastResponse));
+            onResponse(lastResponse);
         }
-        else if (showErrors)
+        else if (errorMessage != null)
         {
-            MessagePanel.instance.DisplayMessage("Erreur !", ErrorMessage(lastStatus, lastResponse));
+            MessagePanel.instance.DisplayMessage("Erreur !", errorMessage(lastStatus, lastResponse));
         }
         else
         {
-            Debug.LogWarning("Characters not loaded (" + lastStatus + ") : " + lastResponse);
+            Debug.LogWarning("Characters request failed (" + lastStatus + ") : " + lastResponse);
         }
         onDone?.Invoke(ok);
     }
 
-    private static string ErrorMessage(long status, string response)
+    private static string EquipmentError(long status, string response)
     {
         switch (status)
         {
@@ -136,6 +167,16 @@ public class CharacterManager : MonoBehaviour
             case 404: return "Cet objet n'est plus dans votre inventaire.";
             case 400: return "Cet objet ne va pas à cet emplacement.";
             default: return "Impossible de changer l'équipement, veuillez réessayer ultérieurement !\n" + response;
+        }
+    }
+
+    private static string RecruitError(long status, string response)
+    {
+        switch (status)
+        {
+            case 402: return "Vous n'avez pas assez d'argent pour cette invocation.";
+            case 404: return "Ce portail n'existe plus.";
+            default: return "Le portail ne répond pas, veuillez réessayer ultérieurement !\n" + response;
         }
     }
 
@@ -154,8 +195,11 @@ public class CharacterManager : MonoBehaviour
             GameCharacter character = new GameCharacter
             {
                 num = api.num,
-                name = api.num >= 1 && api.num <= names.Length ? names[api.num - 1] : "Personnage " + api.num,
-                graphics = Portrait(api.num),
+                name = string.IsNullOrEmpty(api.name) ? "Personnage " + api.num : api.name,
+                rank = string.IsNullOrEmpty(api.rank) ? "D" : api.rank,
+                copies = Mathf.Max(1, api.copies),
+                stats = api.stats,
+                graphics = CharacterArt.Portrait(api.num),
                 expeditionId = api.expeditionId,
             };
             foreach (var worn in api.equipment ?? new Dictionary<string, ItemAPI>())
@@ -180,10 +224,5 @@ public class CharacterManager : MonoBehaviour
                 Inventory.Instance.AddItem(item);
             }
         }
-    }
-
-    private Sprite Portrait(int num)
-    {
-        return num >= 1 && num <= portraits.Count ? portraits[num - 1] : null;
     }
 }

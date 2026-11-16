@@ -22,8 +22,10 @@ public class MessagePanel : MonoBehaviour
         this.messagePanel.SetActive(false);
     }
 
-    public void DisplayMessage(string title, string text)
+    /// <param name="sound">played with the message: most of them tell that something went wrong</param>
+    public void DisplayMessage(string title, string text, Sfx sound = Sfx.Error)
     {
+        SoundManager.Play(sound);
         this.messagePanel.transform.position = new Vector3(Screen.width / 2, Screen.height / 2, 0);
         this.messagePanel.SetActive(true);
         this.messageTitle.text = title;

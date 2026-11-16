@@ -56,6 +56,7 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     private IEnumerator Digging()
     {
         SendExpeditionPanel.instance.isDiging = true;
+        SoundManager.Play(Sfx.Dig);
         GameObject Pickaxe = Instantiate(pickaxePrefab, this.transform);
         Pickaxe.transform.position = this.transform.position + new Vector3(25, 85, 0);
 
@@ -84,6 +85,9 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             isClicked = true;
             //affichage du résultat
             DisplayResultDigging((EventLocationType)dug.rarity);
+            // the better the case, the higher the sound
+            if (dug.rarity > 0) SoundManager.Play(Sfx.DigFound, 1f + 0.12f * (dug.rarity - 1));
+            else SoundManager.Play(Sfx.DigNothing);
         }
         else
         {

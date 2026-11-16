@@ -6,6 +6,7 @@ using UnityEngine.UI;
 /// <summary>
 /// The window asking which character leads an expedition, shown when the expedition is sent. A character already
 /// on an expedition cannot be chosen. The window is built by code, on top of the canvas of the panel opening it.
+/// Up to 3 characters stand on one row; a bigger crew is shown smaller, on rows of 5.
 /// </summary>
 public class CharacterChooser : MonoBehaviour
 {
@@ -14,7 +15,12 @@ public class CharacterChooser : MonoBehaviour
     private static readonly Vector2 windowSize = new Vector2(980f, 700f);
     private static readonly Vector2 portraitSize = new Vector2(240f, 330f);
     private const float portraitSpacing = 300f;
+    private const float rowSpacing = 470f;
+    private const int smallColumns = 5;
+    private const float smallScale = 0.6f;
+    private const float titleHeight = 230f;
 
+    private RectTransform window;
     private RectTransform list;
     private Text model;
     private Action<GameCharacter> onChosen;
@@ -49,15 +55,19 @@ public class CharacterChooser : MonoBehaviour
         GetComponent<Button>().targetGraphic = blocker;
         GetComponent<Button>().transition = Selectable.Transition.None;
 
-        RectTransform window = UIBuilder.Child("Window", transform, new Vector2(0.5f, 0.5f), Vector2.zero, windowSize);
+        window = UIBuilder.Child("Window", transform, new Vector2(0.5f, 0.5f), Vector2.zero, windowSize);
         Image windowImage = UIBuilder.Image(window, background, Color.white, true);
         windowImage.type = Image.Type.Sliced;
         // a click on the window itself must not reach the button behind it, which closes everything
         window.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
 
-        UIBuilder.Text(UIBuilder.Child("Title", window, new Vector2(0.06f, 0.8f), new Vector2(0.94f, 0.95f)),
-            model, "Qui part en expédition ?", 64, TextAnchor.MiddleCenter);
-        list = UIBuilder.Child("List", window, new Vector2(0f, 0f), new Vector2(1f, 0.8f));
+        // the title keeps its height at the top of the window, whose height depends on the number of characters
+        RectTransform title = UIBuilder.Child("Title", window, new Vector2(0.06f, 1f), new Vector2(0.94f, 1f));
+        title.offsetMin = new Vector2(0f, -140f);
+        title.offsetMax = new Vector2(0f, -35f);
+        UIBuilder.Text(title, model, "Qui part en expédition ?", 64, TextAnchor.MiddleCenter);
+        list = UIBuilder.Child("List", window, new Vector2(0f, 0f), new Vector2(1f, 1f));
+        list.offsetMax = new Vector2(0f, -140f);
     }
 
     private void Fill()
@@ -68,12 +78,21 @@ public class CharacterChooser : MonoBehaviour
         }
 
         List<GameCharacter> characters = CharacterManager.Instance.characters;
+        bool small = characters.Count > 3;
+        int columns = small ? smallColumns : Mathf.Max(1, characters.Count);
+        float scale = small ? smallScale : 1f;
+        int rows = Mathf.Max(1, Mathf.CeilToInt(characters.Count / (float)columns));
+        window.sizeDelta = new Vector2(windowSize.x, small ? titleHeight + rows * rowSpacing * scale : windowSize.y);
+
         for (int i = 0; i < characters.Count; i++)
         {
             GameCharacter character = characters[i];
-            float x = (i - (characters.Count - 1) / 2f) * portraitSpacing;
+            int row = i / columns;
+            int inRow = Mathf.Min(columns, characters.Count - row * columns);
+            float x = (i % columns - (inRow - 1) / 2f) * portraitSpacing * scale;
+            float y = ((rows - 1) / 2f - row) * rowSpacing * scale + 40f * scale;
             RectTransform entry = UIBuilder.Child("Character" + character.num, list, new Vector2(0.5f, 0.5f),
-                new Vector2(x, 40f), portraitSize);
+                new Vector2(x, y), portraitSize * scale);
             Image portrait = UIBuilder.Image(entry, character.graphics,
                 character.IsAvailable ? Color.white : new Color(1f, 1f, 1f, 0.3f), true);
             portrait.preserveAspect = true;
@@ -84,7 +103,7 @@ public class CharacterChooser : MonoBehaviour
             button.onClick.AddListener(() => Choose(character));
 
             string label = character.name + (character.IsAvailable ? "" : "\n<color=red>En expédition</color>");
-            UIBuilder.Text(UIBuilder.Child("Name", entry, new Vector2(0.5f, 0f), new Vector2(0f, -55f), new Vector2(280f, 100f)),
+            UIBuilder.Text(UIBuilder.Child("Name", entry, new Vector2(0.5f, 0f), new Vector2(0f, -55f * scale), new Vector2(280f, 100f) * scale),
                 model, label, 34, TextAnchor.UpperCenter);
         }
     }

@@ -30,10 +30,12 @@ public abstract class Panel : MonoBehaviour
         if (IsOpen())
         {
             Close();
+            SoundManager.Play(Sfx.PanelClose);
             return;
         }
         UIManager.instance.CloseAllPanel();
         Open();
+        SoundManager.Play(Sfx.PanelOpen);
         WillShow();
     }
 

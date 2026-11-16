@@ -41,6 +41,8 @@ public class NetworkManager : MonoBehaviour
     // {1} is the number of the character
     public static string equipItemEndPoint = "/V1/user/{0}/characters/{1}/equip";
     public static string unequipItemEndPoint = "/V1/user/{0}/characters/{1}/unequip";
+    public static string portalsEndPoint = "/V1/portals";
+    public static string recruitEndPoint = "/V1/user/{0}/recruit";
 
     public static NetworkManager Instance
     {
