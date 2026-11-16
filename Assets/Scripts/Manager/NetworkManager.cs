@@ -43,6 +43,9 @@ public class NetworkManager : MonoBehaviour
     public static string unequipItemEndPoint = "/V1/user/{0}/characters/{1}/unequip";
     public static string portalsEndPoint = "/V1/portals";
     public static string recruitEndPoint = "/V1/user/{0}/recruit";
+    public static string questsEndPoint = "/V1/user/{0}/quests";
+    // {1} is the id of the quest
+    public static string claimQuestEndPoint = "/V1/user/{0}/quests/{1}/claim";
 
     public static NetworkManager Instance
     {

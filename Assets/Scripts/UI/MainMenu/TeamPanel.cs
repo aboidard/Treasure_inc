@@ -10,13 +10,15 @@ using UnityEngine.UI;
 /// The script finds its elements by name in the hierarchy of the panel:
 ///   Crew/Photo, Crew/Inventory/Photo_1     portrait of the selected character
 ///   Crew/Inventory/GameObject[_1.._8]      the 9 slots, each with an "Image" and a "Border"
-///   Crew/Description/Text                  name, rank, stats and state of the selected character
+///   Crew/Description/Text                  name, rank, level and state of the selected character
 ///   ListCrewMask/ListCrew/*                the portraits of the characters 1, 2, 3... (the art of the project);
 ///                                          the first one is the model of the list, which holds one portrait per
 ///                                          character of the user and scrolls sideways
-/// Built by code: the row of sorts and filters above the list (CharacterFilterBar) and the star of the portrait,
-/// which makes the selected character a favorite.
+/// Built by code: the row of sorts and filters above the list (CharacterFilterBar), the star of the portrait,
+/// which makes the selected character a favorite, and the "Stats" button of the description, which opens the
+/// stats and the skills of the selected character in their own screen (CharacterDetails).
 /// The "équipe" button of the main menu opens a menu (CrewMenu) leading here or to the recruitment (RecruitPanel).
+/// The panels built by code with the frame of this one are created here: RecruitPanel and QuestPanel.
 /// </summary>
 public class TeamPanel : Panel
 {
@@ -95,6 +97,14 @@ public class TeamPanel : Panel
         photoBackground.raycastTarget = false;
         description = UIBuilder.Find(root, "Crew/Description/Text").GetComponent<Text>();
         description.supportRichText = true;
+        // the text leaves the bottom of its box to the button opening the stats and the skills
+        RectTransform descriptionBox = description.transform.parent.GetComponent<RectTransform>();
+        RectTransform descriptionText = description.rectTransform;
+        descriptionText.anchorMin = new Vector2(0f, 0.32f);
+        descriptionText.anchorMax = Vector2.one;
+        descriptionText.offsetMin = descriptionText.offsetMax = Vector2.zero;
+        UIBuilder.Button(UIBuilder.Child("Details", descriptionBox, new Vector2(0f, 0.02f), new Vector2(0.36f, 0.28f)),
+            "Stats", 40, OnClickDetails);
 
         // the prototype was hidden behind this text
         Transform soon = root.Find("SOON");
@@ -154,6 +164,7 @@ public class TeamPanel : Panel
 
         HookMenuButton();
         RecruitPanel.Create(panel);
+        QuestPanel.Create(panel);
 
         CharacterManager.Instance.SetPortraits(portraits);
         CharacterManager.Instance.Refresh(ok =>
@@ -233,6 +244,11 @@ public class TeamPanel : Panel
         if (CharacterManager.Instance.Get(selected) == null) return;
         CharacterFavorites.Toggle(selected);
         Render();
+    }
+
+    public void OnClickDetails()
+    {
+        CharacterDetails.Show(CharacterManager.Instance.Get(selected), panel.transform);
     }
 
     public void OnClickSlot(int slot)
@@ -379,11 +395,10 @@ public class TeamPanel : Panel
             text += "   x" + character.copies;
         }
         text += "\n" + character.LevelText;
-        text += "\n--------------------\n";
         if (!character.IsAvailable)
         {
-            text += "<color=red>En expédition</color>\n";
+            text += "\n<color=red>En expédition</color>";
         }
-        return text + Equipment.DescribeTotal(character.equipment.Values, character.stats);
+        return text;
     }
 }
