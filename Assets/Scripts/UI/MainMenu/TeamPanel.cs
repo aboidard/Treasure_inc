@@ -14,6 +14,8 @@ using UnityEngine.UI;
 ///   ListCrewMask/ListCrew/*                the portraits of the characters 1, 2, 3... (the art of the project);
 ///                                          the first one is the model of the list, which holds one portrait per
 ///                                          character of the user and scrolls sideways
+/// Built by code: the row of sorts and filters above the list (CharacterFilterBar) and the star of the portrait,
+/// which makes the selected character a favorite.
 /// The "équipe" button of the main menu opens a menu (CrewMenu) leading here or to the recruitment (RecruitPanel).
 /// </summary>
 public class TeamPanel : Panel
@@ -54,6 +56,11 @@ public class TeamPanel : Panel
         public Image border;
     }
 
+    // just above the list of the characters, below the slots
+    private static readonly Vector2 filtersPosition = new Vector2(0f, -551f);
+    private static readonly Vector2 filtersSize = new Vector2(990f, 60f);
+    private static readonly Color notFavoriteColor = new Color(1f, 1f, 1f, 0.45f);
+
     private readonly List<SlotView> slots = new List<SlotView>();
     private readonly List<CrewView> crew = new List<CrewView>();
     private Transform listCrew;
@@ -63,6 +70,11 @@ public class TeamPanel : Panel
     private Image photoBackground;
     private Text description;
     private int selected = 1;
+    private CharacterListOptions options;
+    private Image favoriteStar;
+    private Text noMatch;
+    // what the list shows: it is rebuilt when this changes
+    private string crewShown;
 
     void Awake()
     {
@@ -121,6 +133,24 @@ public class TeamPanel : Panel
         }
         crewModel.SetActive(false);
         MakeCrewListScroll();
+
+        options = CharacterListOptions.For("team");
+        CharacterFilterBar.Create(UIBuilder.Child("Filters", root, new Vector2(0.5f, 0.5f), filtersPosition, filtersSize),
+            options, true, Render);
+        noMatch = UIBuilder.Text(UIBuilder.Child("NoMatch", listCrew.parent, new Vector2(0.05f, 0.1f), new Vector2(0.95f, 0.9f)),
+            description, "Aucun personnage ne correspond aux filtres.", 40, TextAnchor.MiddleCenter);
+        noMatch.enabled = false;
+
+        // the star of the big portrait: the selected character is a favorite, or not
+        RectTransform star = UIBuilder.Child("Favorite", photo.transform, new Vector2(0.7f, 0.76f), new Vector2(0.99f, 0.99f));
+        favoriteStar = UIBuilder.Image(star, CharacterFilterBar.Star, notFavoriteColor, true);
+        favoriteStar.preserveAspect = true;
+        Shadow starShadow = star.gameObject.AddComponent<Shadow>();
+        starShadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
+        starShadow.effectDistance = new Vector2(3f, -3f);
+        Button favorite = star.gameObject.AddComponent<Button>();
+        favorite.targetGraphic = favoriteStar;
+        favorite.onClick.AddListener(OnClickFavorite);
 
         HookMenuButton();
         RecruitPanel.Create(panel);
@@ -198,6 +228,13 @@ public class TeamPanel : Panel
         Render();
     }
 
+    public void OnClickFavorite()
+    {
+        if (CharacterManager.Instance.Get(selected) == null) return;
+        CharacterFavorites.Toggle(selected);
+        Render();
+    }
+
     public void OnClickSlot(int slot)
     {
         GameCharacter character = CharacterManager.Instance.Get(selected);
@@ -222,14 +259,21 @@ public class TeamPanel : Panel
     /// <summary>Shows the characters and the selected one again, e.g. after its equipment changed or a recruitment.</summary>
     public void Render()
     {
-        List<GameCharacter> characters = CharacterManager.Instance.characters;
-        if (CharacterManager.Instance.Get(selected) == null && characters.Count > 0)
+        List<GameCharacter> characters = options.Apply(CharacterManager.Instance.characters);
+        // the selected character is one of the list, as long as the filters leave some
+        if (characters.Count > 0 && !characters.Any(shown => shown.num == selected))
         {
             selected = characters[0].num;
+        }
+        else if (CharacterManager.Instance.Get(selected) == null && CharacterManager.Instance.characters.Count > 0)
+        {
+            selected = CharacterManager.Instance.characters[0].num;
         }
         GameCharacter character = CharacterManager.Instance.Get(selected);
 
         FillCrewList(characters);
+        noMatch.enabled = characters.Count == 0 && CharacterManager.Instance.characters.Count > 0;
+        favoriteStar.color = character != null && character.IsFavorite ? CharacterFilterBar.FavoriteColor : notFavoriteColor;
         foreach (CrewView view in crew)
         {
             GameCharacter member = CharacterManager.Instance.Get(view.num);
@@ -262,10 +306,16 @@ public class TeamPanel : Panel
         description.text = Describe(character);
     }
 
-    /// <summary>One portrait per character, in the order of their numbers; rebuilt only when the crew changed.</summary>
+    /// <summary>
+    /// One portrait per character, in the order given, with its rank, its level and a star when it is a favorite;
+    /// rebuilt only when one of these changed.
+    /// </summary>
     private void FillCrewList(List<GameCharacter> characters)
     {
-        if (crew.Select(view => view.num).SequenceEqual(characters.Select(character => character.num))) return;
+        string shown = string.Join(";", characters.Select(character =>
+            character.num + ":" + character.level + ":" + (character.IsFavorite ? "f" : "")));
+        if (shown == crewShown) return;
+        crewShown = shown;
 
         foreach (CrewView view in crew)
         {
@@ -286,17 +336,35 @@ public class TeamPanel : Panel
             };
             view.portrait.sprite = character.graphics;
 
-            Text rank = UIBuilder.Text(UIBuilder.Child("Rank", member.transform, new Vector2(0.08f, 0.03f), new Vector2(0.7f, 0.24f)),
+            Text rank = UIBuilder.Text(UIBuilder.Child("Rank", member.transform, new Vector2(0.08f, 0.03f), new Vector2(0.5f, 0.24f)),
                 description, character.rank, 40, TextAnchor.MiddleLeft);
             rank.color = CharacterRank.Color(character.rank);
-            Outline outline = rank.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0f, 0f, 0f, 0.85f);
-            outline.effectDistance = new Vector2(2f, -2f);
+            Outlined(rank);
+            Text level = UIBuilder.Text(UIBuilder.Child("Level", member.transform, new Vector2(0.5f, 0.03f), new Vector2(0.92f, 0.24f)),
+                description, "Nv " + character.level, 34, TextAnchor.MiddleRight);
+            level.color = Color.white;
+            Outlined(level);
+            if (character.IsFavorite)
+            {
+                Image star = UIBuilder.Image(UIBuilder.Child("Favorite", member.transform, new Vector2(0.68f, 0.72f), new Vector2(0.94f, 0.96f)),
+                    CharacterFilterBar.Star, CharacterFilterBar.FavoriteColor, false);
+                star.preserveAspect = true;
+                Outline starOutline = star.gameObject.AddComponent<Outline>();
+                starOutline.effectColor = new Color(0f, 0f, 0f, 0.85f);
+                starOutline.effectDistance = new Vector2(2f, -2f);
+            }
 
             int num = character.num;
             member.AddComponent<Button>().onClick.AddListener(() => OnClickCharacter(num));
             crew.Add(view);
         }
+    }
+
+    private static void Outlined(Text text)
+    {
+        Outline outline = text.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(0f, 0f, 0f, 0.85f);
+        outline.effectDistance = new Vector2(2f, -2f);
     }
 
     private static string Describe(GameCharacter character)
@@ -310,6 +378,7 @@ public class TeamPanel : Panel
         {
             text += "   x" + character.copies;
         }
+        text += "\n" + character.LevelText;
         text += "\n--------------------\n";
         if (!character.IsAvailable)
         {

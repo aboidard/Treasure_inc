@@ -71,10 +71,20 @@ public class SendExpeditionResponse
     public string expeditionId { get; set; }
     public int money { get; set; }
     public int itemCount { get; set; }
+    /// <summary>The experience the character will earn when the chest is opened.</summary>
+    public int xp { get; set; }
 }
 
 [System.Serializable]
 public class OpenChestRequest
 {
     public string expeditionId { get; set; }
+}
+
+/// <summary>The content of a chest: its items, and what the expedition brought to its character (null: nobody led it).</summary>
+[System.Serializable]
+public class OpenChestResponse
+{
+    public List<ItemAPI> items { get; set; }
+    public XpGainAPI xp { get; set; }
 }

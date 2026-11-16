@@ -7,23 +7,30 @@ using UnityEngine.UI;
 /// The window asking which character leads an expedition, shown when the expedition is sent. A character already
 /// on an expedition cannot be chosen. The window is built by code, on top of the canvas of the panel opening it.
 /// Up to 3 characters stand on one row; a bigger crew is shown smaller, on rows of 5.
+/// The row of buttons below the title sorts and filters the characters (CharacterFilterBar); the star of a
+/// character makes it a favorite.
 /// </summary>
 public class CharacterChooser : MonoBehaviour
 {
     private static CharacterChooser instance;
 
-    private static readonly Vector2 windowSize = new Vector2(980f, 700f);
+    private static readonly Vector2 windowSize = new Vector2(980f, 790f);
     private static readonly Vector2 portraitSize = new Vector2(240f, 330f);
     private const float portraitSpacing = 300f;
     private const float rowSpacing = 470f;
     private const int smallColumns = 5;
     private const float smallScale = 0.6f;
-    private const float titleHeight = 230f;
+    private const float titleHeight = 320f;
+    // from the top of the window: the title, then the sorts and the filters, then the characters
+    private const float titleBottom = 140f;
+    private const float filtersBottom = 215f;
+    private const float listTop = 230f;
 
     private RectTransform window;
     private RectTransform list;
     private Text model;
     private Action<GameCharacter> onChosen;
+    private CharacterListOptions options;
 
     /// <summary>
     /// Opens the window; onChosen is called with the character clicked, and not at all when the window is closed.
@@ -63,11 +70,18 @@ public class CharacterChooser : MonoBehaviour
 
         // the title keeps its height at the top of the window, whose height depends on the number of characters
         RectTransform title = UIBuilder.Child("Title", window, new Vector2(0.06f, 1f), new Vector2(0.94f, 1f));
-        title.offsetMin = new Vector2(0f, -140f);
+        title.offsetMin = new Vector2(0f, -titleBottom);
         title.offsetMax = new Vector2(0f, -35f);
         UIBuilder.Text(title, model, "Qui part en expédition ?", 64, TextAnchor.MiddleCenter);
+
+        options = CharacterListOptions.For("chooser");
+        RectTransform filters = UIBuilder.Child("Filters", window, new Vector2(0.04f, 1f), new Vector2(0.96f, 1f));
+        filters.offsetMin = new Vector2(0f, -filtersBottom);
+        filters.offsetMax = new Vector2(0f, -titleBottom - 10f);
+        CharacterFilterBar.Create(filters, options, true, Fill);
+
         list = UIBuilder.Child("List", window, new Vector2(0f, 0f), new Vector2(1f, 1f));
-        list.offsetMax = new Vector2(0f, -140f);
+        list.offsetMax = new Vector2(0f, -listTop);
     }
 
     private void Fill()
@@ -77,7 +91,14 @@ public class CharacterChooser : MonoBehaviour
             Destroy(list.GetChild(i).gameObject);
         }
 
-        List<GameCharacter> characters = CharacterManager.Instance.characters;
+        List<GameCharacter> characters = options.Apply(CharacterManager.Instance.characters);
+        if (characters.Count == 0)
+        {
+            window.sizeDelta = windowSize;
+            UIBuilder.Text(UIBuilder.Child("NoMatch", list, new Vector2(0.1f, 0.3f), new Vector2(0.9f, 0.7f)),
+                model, "Aucun personnage ne correspond aux filtres.", 44, TextAnchor.MiddleCenter);
+            return;
+        }
         bool small = characters.Count > 3;
         int columns = small ? smallColumns : Mathf.Max(1, characters.Count);
         float scale = small ? smallScale : 1f;
@@ -102,8 +123,25 @@ public class CharacterChooser : MonoBehaviour
             button.interactable = character.IsAvailable;
             button.onClick.AddListener(() => Choose(character));
 
-            string label = character.name + (character.IsAvailable ? "" : "\n<color=red>En expédition</color>");
-            UIBuilder.Text(UIBuilder.Child("Name", entry, new Vector2(0.5f, 0f), new Vector2(0f, -55f * scale), new Vector2(280f, 100f) * scale),
+            // its star: a click makes the character a favorite, or no longer one, without choosing it
+            RectTransform star = UIBuilder.Child("Favorite", entry, new Vector2(0.7f, 0.8f), new Vector2(1f, 1f));
+            Image starImage = UIBuilder.Image(star, CharacterFilterBar.Star,
+                character.IsFavorite ? CharacterFilterBar.FavoriteColor : new Color(1f, 1f, 1f, 0.45f), true);
+            starImage.preserveAspect = true;
+            Shadow starShadow = star.gameObject.AddComponent<Shadow>();
+            starShadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
+            starShadow.effectDistance = new Vector2(2f, -2f);
+            Button favorite = star.gameObject.AddComponent<Button>();
+            favorite.targetGraphic = starImage;
+            favorite.onClick.AddListener(() =>
+            {
+                CharacterFavorites.Toggle(character.num);
+                Fill();
+            });
+
+            string label = character.name + "\n" + CharacterRank.Colored(character.rank) + "   Nv " + character.level
+                + (character.IsAvailable ? "" : "\n<color=red>En expédition</color>");
+            UIBuilder.Text(UIBuilder.Child("Name", entry, new Vector2(0.5f, 0f), new Vector2(0f, -65f * scale), new Vector2(280f, 120f) * scale),
                 model, label, 34, TextAnchor.UpperCenter);
         }
     }
