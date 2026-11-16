@@ -39,6 +39,18 @@ public class LootPanel : MonoBehaviour
         StartCoroutine(OpenChest(expeditionId));
     }
 
+    /// <summary>Shows items the user just received otherwise than from a chest: the reward of a quest.</summary>
+    public void ShowItems(string title, List<Item> received)
+    {
+        lootTitle.text = title;
+        InitPanel();
+        OpenPanel();
+        this.items = received ?? new List<Item>();
+        FillPanel();
+        bool rare = this.items.Exists(item => item.rarity == Rarity.Epic || item.rarity == Rarity.Legendary);
+        SoundManager.Play(rare ? Sfx.RareItem : Sfx.ItemsFound);
+    }
+
     IEnumerator OpenChest(string expeditionId)
     {
         Loader.instance.SetLoading(true);
@@ -63,6 +75,8 @@ public class LootPanel : MonoBehaviour
 
         // the chest is opened: the character of the expedition is available again
         CharacterManager.Instance.MarkFree(expeditionId);
+        // an opened chest counts for the quests
+        QuestManager.Instance.Refresh();
 
         // an API older than the levels answers the items alone, as a list
         OpenChestResponse chest = response.TrimStart().StartsWith("[")
@@ -76,6 +90,14 @@ public class LootPanel : MonoBehaviour
 
             //add the item to the inventory
             Inventory.Instance.AddItem(myItem);
+        }
+        if (chest.floors > 0 && chest.floorsCompleted < chest.floors)
+        {
+            // the character died on the way: it only brings back what it found before
+            GameCharacter fallen = chest.xp != null ? CharacterManager.Instance.Get(chest.xp.character) : null;
+            lootTitle.text = (fallen != null ? fallen.name : "Votre personnage") + " est tombé à l'étage "
+                + (chest.floorsCompleted + 1) + "/" + chest.floors
+                + (this.items.Count == 0 ? " et revient les mains vides..." : " : voici ce qu'il a pu rapporter.");
         }
         FillPanel();
         ShowXp(chest.xp);

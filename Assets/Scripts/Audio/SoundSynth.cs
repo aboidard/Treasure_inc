@@ -100,6 +100,51 @@ public static class SoundSynth
                 }
                 return b;
 
+            case Sfx.Hit:
+                b = Buffer(0.1f);
+                Noise(b, 0f, 0.07f, 0.3f, 5000f, 900f);
+                Tone(b, Wave.Square, 0f, 0.08f, 320f, 120f, 0.25f, 0.5f);
+                return b;
+
+            case Sfx.CriticalHit:
+                b = Buffer(0.22f);
+                Noise(b, 0f, 0.1f, 0.4f, 8000f, 800f);
+                Tone(b, Wave.Square, 0f, 0.12f, 420f, 90f, 0.3f, 0.5f);
+                Bell(b, 0.02f, 0.18f, 1800f, 3.7f, 3f, 0.2f);
+                return b;
+
+            case Sfx.Hurt:
+                b = Buffer(0.12f);
+                Tone(b, Wave.Triangle, 0f, 0.1f, 200f, 80f, 0.45f);
+                Noise(b, 0f, 0.06f, 0.15f, 1800f, 400f);
+                return b;
+
+            case Sfx.SkillUse:
+                b = Buffer(0.25f);
+                Tone(b, Wave.Square, 0f, 0.1f, 500f, 1100f, 0.18f, 0.25f);
+                Bell(b, 0.06f, 0.18f, 1500f, 2f, 2f, 0.25f);
+                return b;
+
+            case Sfx.MonsterDown:
+                b = Buffer(0.35f);
+                Tone(b, Wave.Saw, 0f, 0.3f, 400f, 50f, 0.3f);
+                Noise(b, 0.05f, 0.25f, 0.2f, 3000f, 300f);
+                return b;
+
+            case Sfx.BarricadeBreak:
+                b = Buffer(0.4f);
+                Noise(b, 0f, 0.3f, 0.45f, 4000f, 250f);
+                Tone(b, Wave.Square, 0f, 0.15f, 160f, 50f, 0.35f, 0.5f);
+                Tone(b, Wave.Square, 0.1f, 0.2f, 120f, 40f, 0.25f, 0.5f);
+                return b;
+
+            case Sfx.Defeat:
+                b = Buffer(0.9f);
+                Tone(b, Wave.Triangle, 0f, 0.25f, 330f, 300f, 0.4f);
+                Tone(b, Wave.Triangle, 0.25f, 0.25f, 262f, 240f, 0.4f);
+                Tone(b, Wave.Triangle, 0.5f, 0.4f, 196f, 110f, 0.45f);
+                return b;
+
             case Sfx.DigNothing:
                 b = Buffer(0.25f);
                 Tone(b, Wave.Triangle, 0f, 0.2f, 150f, 60f, 0.5f);

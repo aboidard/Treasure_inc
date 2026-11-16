@@ -10,7 +10,8 @@ public class LootButton : MonoBehaviour
     public void onClick()
     {
         SoundManager.Play(Sfx.ChestOpen);
-        LootPanel.instance.ShowLoot(ex.expeditionId, "l'expedition \"" + ex.expeditionName + "\" est de retour !");
+        LootPanel.instance.ShowLoot(ex.expeditionId, "l'expedition \"" + ex.expeditionName + "\" "
+            + (ex.failed ? "a tourné court..." : "est de retour !"));
         Destroy(lootButton);
     }
 }

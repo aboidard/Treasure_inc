@@ -21,9 +21,14 @@ public class GameCharacter
     /// <summary>The experience the level takes; 0 at the highest level.</summary>
     public int xpNext;
     /// <summary>
-    /// The stats of the character itself at its level, with the keys of the stats of an item ("for", "con", "luk").
+    /// The stats of the character itself at its level, with the keys of the stats of an item
+    /// ("for", "con", "agi", "luk").
     /// </summary>
     public Dictionary<string, object> stats;
+    /// <summary>The ids of the skills the character has by itself, whatever it wears (see Equipment.SkillDescription).</summary>
+    public List<string> skills = new List<string>();
+    /// <summary>What the character is worth in a fight, equipment included; null from a server older than the fights.</summary>
+    public CombatStatsAPI combat;
     public Sprite graphics;
     /// <summary>Null unless the character is on an expedition whose chest is not opened yet.</summary>
     public string expeditionId;
@@ -107,12 +112,41 @@ public class CharacterAPI
     public string name { get; set; }
     public string rank { get; set; }
     public Dictionary<string, object> stats { get; set; }
+    public List<string> skills { get; set; }
+    public CombatStatsAPI combat { get; set; }
     public int level { get; set; }
     public int xp { get; set; }
     public int xpNext { get; set; }
     public int copies { get; set; }
     public string expeditionId { get; set; }
     public Dictionary<string, ItemAPI> equipment { get; set; }
+}
+
+/// <summary>
+/// A character as it fights, computed by the server from its stats, its skills and its equipment.
+/// </summary>
+[System.Serializable]
+public class CombatStatsAPI
+{
+    public int hp { get; set; }
+    public int attack { get; set; }
+    public int defense { get; set; }
+    /// <summary>Milliseconds between two attacks.</summary>
+    public int interval { get; set; }
+    /// <summary>Chance of a critical hit, in percent.</summary>
+    public int crit { get; set; }
+    /// <summary>Chance to dodge a hit, in percent.</summary>
+    public int dodge { get; set; }
+
+    /// <summary>"PV 84   Attaque 14   Défense 3" then "1 attaque / 1,7 s   Critique 6%".</summary>
+    public string Describe()
+    {
+        string text = "PV " + hp + "   Attaque " + attack + "   Défense " + defense
+            + "\n1 attaque / " + (interval / 1000f).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',')
+            + " s   Critique " + crit + "%";
+        if (dodge > 0) text += "   Esquive " + dodge + "%";
+        return text;
+    }
 }
 
 /// <summary>

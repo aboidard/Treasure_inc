@@ -14,6 +14,8 @@ public enum Sfx
     Coins, Equip, Unequip, ChestOpen, ItemsFound, RareItem,
     // expeditions
     Dig, DigNothing, DigFound, ExpeditionSend, ExpeditionReturn, Step, EventReach,
+    // obstacles and fights
+    Hit, CriticalHit, Hurt, SkillUse, MonsterDown, BarricadeBreak, Defeat,
     // recruitment
     PortalOpen, SummonStep, SummonBurst, RankStamp, RevealCommon, RevealRare, RevealEpic, RevealLegend,
 }

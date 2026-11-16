@@ -83,6 +83,8 @@ public class LocationGridButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             DigCaseResponse dug = JsonConvert.DeserializeObject<DigCaseResponse>(response);
             Inventory.Instance.CurrentMoney = dug.money;
             isClicked = true;
+            // a case dug counts for the quests
+            QuestManager.Instance.Refresh();
             //affichage du résultat
             DisplayResultDigging((EventLocationType)dug.rarity);
             // the better the case, the higher the sound

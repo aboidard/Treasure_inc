@@ -45,8 +45,8 @@ public class ExpeditionManager : MonoBehaviour
             if (expedition.floorOver)
             {
                 expedition.currentFloor++;
-                //calcul si l'expedition est finie
-                if (expedition.currentFloor > expedition.nbTtotalFloor)
+                //calcul si l'expedition est finie : dernier étage atteint, ou personnage mort en chemin
+                if (expedition.failed || expedition.currentFloor > expedition.nbTtotalFloor)
                 {
                     expedition.over = true;
                     ExpeditionReturn(expedition);
@@ -155,6 +155,13 @@ public class ExpeditionManager : MonoBehaviour
         expedition.location = location;
         expedition.nbTtotalFloor = floor;
         expedition.character = character;
+        // the obstacles and the fights of the way, already decided by the server
+        expedition.run = sent.run;
+        if (sent.run != null)
+        {
+            expedition.maxHp = sent.run.maxHp;
+            expedition.hp = sent.run.maxHp;
+        }
         CharacterManager.Instance.MarkBusy(character.num, sent.expeditionId);
         expedition.positionInGrid = ExpeditionGridPanel.instance.GetFreeSpot(ExpeditionGridPanel.SIZE_S);
         expedition.panelRun = Instantiate(expeditionPanelPrefab, expedition.positionInGrid.transform);
@@ -170,7 +177,8 @@ public class ExpeditionManager : MonoBehaviour
     public void ExpeditionReturn(Expedition ex)
     {
         Debug.Log("Expedition returned : " + ex);
-        SoundManager.Play(Sfx.ExpeditionReturn);
+        // the defeat was already heard when the character fell
+        if (!ex.failed) SoundManager.Play(Sfx.ExpeditionReturn);
         GameObject lootButton = Instantiate(LootButtonPrefab, LootPanelGrid.transform);
         lootButton.GetComponent<LootButton>().ex = ex;
     }

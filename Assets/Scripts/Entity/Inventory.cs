@@ -109,6 +109,8 @@ public class Inventory : MonoBehaviour
             {
                 Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
                 Loader.instance.SetLoading(false);
+                // the items sold count for the quests
+                QuestManager.Instance.Refresh();
             }
         }
     }

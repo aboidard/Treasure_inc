@@ -102,6 +102,8 @@ public class CharacterManager : MonoBehaviour
                 drawn = JsonConvert.DeserializeObject<RecruitResponse>(response);
                 Apply(drawn.characters);
                 Inventory.Instance.CurrentMoney = drawn.money;
+                // the draws count for the quests
+                QuestManager.Instance.Refresh();
             }));
     }
 
@@ -213,6 +215,8 @@ public class CharacterManager : MonoBehaviour
                 xp = api.xp,
                 xpNext = api.xpNext,
                 stats = api.stats,
+                skills = api.skills ?? new List<string>(),
+                combat = api.combat,
                 graphics = CharacterArt.Portrait(api.num),
                 expeditionId = api.expeditionId,
             };
