@@ -7,7 +7,8 @@ using UnityEngine.UI;
 /// <summary>
 /// The recruitment: the user summons characters through a portal, by one draw or several at once, without
 /// knowing who will come. The server makes the draws (see CharacterManager.Recruit) and SummonAnimation shows them.
-/// The panel shows the portal, the chances of each rank and which of its characters the user already has.
+/// The panel shows the portal, the chances of each rank and which of its characters the user already has; these
+/// can be sorted and filtered like the other lists of characters (CharacterFilterBar).
 /// The scene has no such panel: it is built by code with the frame of the crew panel (see Create).
 /// </summary>
 public class RecruitPanel : Panel
@@ -30,6 +31,7 @@ public class RecruitPanel : Panel
     private RectTransform ringB;
     private RectTransform glow;
     private PortalAPI portal;
+    private CharacterListOptions options;
 
     /// <summary>Creates the panel next to the crew panel, with its place, its size and its frame.</summary>
     public static RecruitPanel Create(GameObject crewPanel)
@@ -105,7 +107,11 @@ public class RecruitPanel : Panel
 
         collectionTitle = UIBuilder.Text(UIBuilder.Child("CollectionTitle", root, new Vector2(0.06f, 0.465f), new Vector2(0.94f, 0.5f)),
             model, "", 34, TextAnchor.MiddleLeft);
-        collection = UIBuilder.Child("Collection", root, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.46f));
+        // the strongest first, until the user sorts them otherwise: what the portal promises
+        options = CharacterListOptions.For("recruit", CharacterSort.Rank, true);
+        CharacterFilterBar.Create(UIBuilder.Child("Filters", root, new Vector2(0.04f, 0.422f), new Vector2(0.96f, 0.458f)),
+            options, false, Render);
+        collection = UIBuilder.Child("Collection", root, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.414f));
     }
 
     void Update()
@@ -174,9 +180,14 @@ public class RecruitPanel : Panel
         int owned = content.Count(c => CharacterManager.Instance.Get(c.num) != null);
         collectionTitle.text = "Collection : " + owned + " / " + content.Count;
 
-        // the strongest first: what the portal promises
-        List<CharacterAPI> sorted = content.OrderByDescending(c => CharacterRank.Tier(c.rank)).ThenBy(c => c.num).ToList();
-        int rows = Mathf.Max(1, Mathf.CeilToInt(sorted.Count / (float)columns));
+        List<CharacterAPI> sorted = options.Apply(content, Describe);
+        // the cells keep their size when the filters leave fewer characters
+        int rows = Mathf.Max(1, Mathf.CeilToInt(content.Count / (float)columns));
+        if (sorted.Count == 0 && content.Count > 0)
+        {
+            UIBuilder.Text(UIBuilder.Child("NoMatch", collection, new Vector2(0.1f, 0.4f), new Vector2(0.9f, 0.6f)),
+                UIBuilder.ModelText, "Aucun personnage ne correspond aux filtres.", 40, TextAnchor.MiddleCenter);
+        }
         for (int i = 0; i < sorted.Count; i++)
         {
             int column = i % columns;
@@ -188,7 +199,25 @@ public class RecruitPanel : Panel
         }
     }
 
-    /// <summary>A character of the portal: its portrait and its copies when the user has it, its shadow otherwise.</summary>
+    /// <summary>A character of the portal for the sorts and the filters: as the user has it, or as the portal gives it.</summary>
+    private static CharacterEntry Describe(CharacterAPI character)
+    {
+        GameCharacter owned = CharacterManager.Instance.Get(character.num);
+        if (owned != null) return CharacterEntry.Of(owned);
+        return new CharacterEntry
+        {
+            num = character.num,
+            name = character.name,
+            rank = character.rank,
+            level = 0,
+            power = Equipment.Power(character.stats),
+            available = true,
+        };
+    }
+
+    /// <summary>
+    /// A character of the portal: its portrait, its level and its copies when the user has it, its shadow otherwise.
+    /// </summary>
     private void FillCell(RectTransform cell, CharacterAPI character, GameCharacter owned)
     {
         Color rankColor = CharacterRank.Color(character.rank);
@@ -209,11 +238,18 @@ public class RecruitPanel : Panel
                 UIBuilder.ModelText, "?", 90, TextAnchor.MiddleCenter);
             unknown.color = new Color(1f, 1f, 1f, 0.7f);
         }
-        else if (owned.copies > 1)
+        else
         {
-            Text copies = UIBuilder.Text(UIBuilder.Child("Copies", frame, new Vector2(0.55f, 0.01f), new Vector2(0.95f, 0.21f)),
-                UIBuilder.ModelText, "x" + owned.copies, 30, TextAnchor.MiddleRight);
-            copies.color = Color.white;
+            string state = "Nv " + owned.level + (owned.copies > 1 ? "  x" + owned.copies : "");
+            Text level = UIBuilder.Text(UIBuilder.Child("Level", frame, new Vector2(0.4f, 0.01f), new Vector2(0.95f, 0.21f)),
+                UIBuilder.ModelText, state, 30, TextAnchor.MiddleRight);
+            level.color = Color.white;
+            if (owned.IsFavorite)
+            {
+                Image star = UIBuilder.Image(UIBuilder.Child("Favorite", frame, new Vector2(0.72f, 0.78f), new Vector2(0.96f, 0.97f)),
+                    CharacterFilterBar.Star, CharacterFilterBar.FavoriteColor, false);
+                star.preserveAspect = true;
+            }
         }
     }
 

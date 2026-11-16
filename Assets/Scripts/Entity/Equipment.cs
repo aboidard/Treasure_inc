@@ -139,6 +139,22 @@ public static class Equipment
         return string.Join("\n", lines);
     }
 
+    /// <summary>The sum of the stats of a character and of the items it wears: what "power" means in the lists.</summary>
+    public static int Power(Dictionary<string, object> baseStats, IEnumerable<Item> items = null)
+    {
+        int power = 0;
+        foreach (var stat in statNames)
+        {
+            power += Number(baseStats, stat.Key);
+            if (items == null) continue;
+            foreach (Item item in items)
+            {
+                power += Number(item.stats, stat.Key);
+            }
+        }
+        return power;
+    }
+
     public enum ChangeKind { StatUp, StatDown, SkillGained, SkillLost }
 
     /// <summary>One difference between two items of the same slot, e.g. StatUp "Force +3".</summary>

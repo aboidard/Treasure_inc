@@ -121,6 +121,17 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
+    /// <summary>The character earned experience: its level and its stats are those the server answered.</summary>
+    public void ApplyXp(XpGainAPI gain)
+    {
+        GameCharacter character = gain != null ? Get(gain.character) : null;
+        if (character == null) return;
+        character.level = Mathf.Max(1, gain.level);
+        character.xp = gain.xp;
+        character.xpNext = gain.xpNext;
+        if (gain.stats != null) character.stats = gain.stats;
+    }
+
     private long lastStatus;
     private string lastResponse;
 
@@ -198,6 +209,9 @@ public class CharacterManager : MonoBehaviour
                 name = string.IsNullOrEmpty(api.name) ? "Personnage " + api.num : api.name,
                 rank = string.IsNullOrEmpty(api.rank) ? "D" : api.rank,
                 copies = Mathf.Max(1, api.copies),
+                level = Mathf.Max(1, api.level),
+                xp = api.xp,
+                xpNext = api.xpNext,
                 stats = api.stats,
                 graphics = CharacterArt.Portrait(api.num),
                 expeditionId = api.expeditionId,

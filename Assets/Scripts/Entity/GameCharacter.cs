@@ -14,7 +14,15 @@ public class GameCharacter
     public string rank;
     /// <summary>How many times the user obtained the character: more than 1 after a duplicate was drawn.</summary>
     public int copies = 1;
-    /// <summary>The stats of the character itself, with the keys of the stats of an item ("for", "con", "luk").</summary>
+    /// <summary>From 1 to 100: it grows with the experience earned in expeditions.</summary>
+    public int level = 1;
+    /// <summary>The experience earned since the level was reached.</summary>
+    public int xp;
+    /// <summary>The experience the level takes; 0 at the highest level.</summary>
+    public int xpNext;
+    /// <summary>
+    /// The stats of the character itself at its level, with the keys of the stats of an item ("for", "con", "luk").
+    /// </summary>
     public Dictionary<string, object> stats;
     public Sprite graphics;
     /// <summary>Null unless the character is on an expedition whose chest is not opened yet.</summary>
@@ -22,6 +30,17 @@ public class GameCharacter
     public Dictionary<int, Item> equipment = new Dictionary<int, Item>();
 
     public bool IsAvailable => string.IsNullOrEmpty(expeditionId);
+
+    public bool IsMaxLevel => xpNext <= 0;
+
+    /// <summary>The sum of its stats, equipment included.</summary>
+    public int Power => global::Equipment.Power(stats, equipment.Values);
+
+    /// <summary>Chosen by the user, see CharacterFavorites.</summary>
+    public bool IsFavorite => CharacterFavorites.Contains(num);
+
+    /// <summary>"Niveau 12   50 / 200 XP", or "Niveau 100 (max)".</summary>
+    public string LevelText => "Niveau " + level + (IsMaxLevel ? " (max)" : "   " + UIBuilder.Number(xp) + " / " + UIBuilder.Number(xpNext) + " XP");
 
     public Item Equipped(int slot)
     {
@@ -88,9 +107,32 @@ public class CharacterAPI
     public string name { get; set; }
     public string rank { get; set; }
     public Dictionary<string, object> stats { get; set; }
+    public int level { get; set; }
+    public int xp { get; set; }
+    public int xpNext { get; set; }
     public int copies { get; set; }
     public string expeditionId { get; set; }
     public Dictionary<string, ItemAPI> equipment { get; set; }
+}
+
+/// <summary>
+/// What an expedition brought to its character, as sent by the API when its chest is opened: the experience
+/// gained, then the level, the experience in this level and the stats of the character afterwards.
+/// </summary>
+[System.Serializable]
+public class XpGainAPI
+{
+    /// <summary>Number of the character.</summary>
+    public int character { get; set; }
+    /// <summary>0 for a character at the highest level.</summary>
+    public int gained { get; set; }
+    public int levelBefore { get; set; }
+    public int level { get; set; }
+    public int xp { get; set; }
+    /// <summary>0 at the highest level.</summary>
+    public int xpNext { get; set; }
+    public Dictionary<string, object> statsBefore { get; set; }
+    public Dictionary<string, object> stats { get; set; }
 }
 
 /// <summary>A portal the characters are summoned from, as sent by the API.</summary>

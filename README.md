@@ -38,4 +38,36 @@ Les personnages sont numérotés à partir de 1, dans l'ordre des portraits de `
 Les éléments ajoutés par cette fonctionnalité (case « équipables », bouton « Retirer », icône, choix du personnage)
 sont créés par les scripts au lancement : la scène et les prefabs ne sont pas modifiés.
 
+
+## Niveaux et expérience
+
+Les règles (gain, longueur des niveaux, points de caractéristique) sont dans le moteur : voir « Niveaux et expérience »
+dans son README. Le client ne calcule rien : il affiche ce que le serveur répond.
+
+- Chaque personnage reçu de l'API a un `level` (1 à 100), l'expérience acquise dans ce niveau (`xp`) et ce que le niveau
+  demande (`xpNext`, 0 au niveau 100). Ses `stats` sont déjà celles de son niveau.
+- L'ouverture d'un coffre répond `{items, xp}`. L'écran de retour d'expédition (`LootPanel`) montre les objets puis, en
+  dessous, ce que l'expédition a rapporté à son personnage (`XpGainView`) : l'expérience gagnée, une barre qui se
+  remplit, le passage de niveau et les caractéristiques gagnées. Le contenu de l'écran défile quand il dépasse.
+- Le niveau est affiché dans l'écran d'équipe, dans le choix du personnage d'une expédition et dans la collection du
+  recrutement.
+
+## Tris, filtres et favoris
+
+Les trois écrans qui listent des personnages (équipe, choix du personnage d'une expédition, collection du recrutement)
+ont la même rangée de boutons (`CharacterFilterBar`), de gauche à droite :
+
+- **Tri** : un clic passe au suivant (numéro, rang, niveau, puissance, nom). La puissance est la somme des
+  caractéristiques, équipement compris.
+- **Flèche** : sens du tri.
+- **Étoile** : n'afficher que les favoris.
+- **Dispo** : n'afficher que les personnages qui ne sont pas en expédition (absent de la collection).
+- **D … SSS** : masquer ou afficher les personnages d'un rang.
+
+Chaque écran garde ses propres réglages (`CharacterListOptions`), conservés dans les préférences de l'appareil.
+
+Un personnage devient **favori** par l'étoile de son portrait (grand portrait de l'écran d'équipe, ou coin du portrait
+dans le choix du personnage). Les favoris passent toujours en tête des listes, quel que soit le tri. Ils sont conservés
+dans les préférences de l'appareil, par compte (`CharacterFavorites`) : le serveur ne les connaît pas.
+
 © 2021 Arnaud Boidard
