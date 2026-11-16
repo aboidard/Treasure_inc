@@ -20,6 +20,9 @@ public class InventoryPanel : Panel
     private int equipSlot;
     private bool equipRequested;
     private GameObject unequipButton;
+    private GameObject cancelButton;
+    private EquipTooltip tooltip;
+    private int listPaddingBottom = -1;
 
     public bool IsEquipMode => equipCharacter != null;
 
@@ -33,8 +36,10 @@ public class InventoryPanel : Panel
         instance = this;
     }
     /// <summary>
-    /// Opens the inventory on the items that fit a slot of a character: a click on one of them equips it.
-    /// The item already in the slot can be taken off with the "Retirer" button.
+    /// Opens the inventory on the items that fit a slot of a character: a click on one of them shows what it
+    /// changes compared to the item of the slot (see EquipTooltip), a second click or the button of the tooltip
+    /// equips it. The item already in the slot can be taken off with the "Retirer" button, and the arrow at the
+    /// bottom right goes back to the crew without changing anything.
     /// </summary>
     public void ShowForEquip(GameCharacter character, int slot)
     {
@@ -51,17 +56,54 @@ public class InventoryPanel : Panel
         return listObjectPanel != null && listObjectPanel.Contains(objectPanel);
     }
 
+    /// <summary>A click on an item of the list while a slot is being filled.</summary>
+    public void SelectForEquip(ObjectPanel objectPanel)
+    {
+        if (!IsEquipMode || CharacterManager.Instance.isBusy) return;
+        Item item = objectPanel.item;
+        if (tooltip == null)
+        {
+            Text[] buttonTexts = autoSelectButton.GetComponentsInChildren<Text>(true);
+            tooltip = new EquipTooltip(panel.GetComponent<RectTransform>(), title, autoSelectButton.GetComponent<Image>(),
+                buttonTexts.Length > 0 ? buttonTexts[0].color : Color.black);
+            // the tooltip is not in the list: it would stay where it is while its item moves
+            ScrollRect scroll = listObject.GetComponentInParent<ScrollRect>();
+            if (scroll != null) scroll.onValueChanged.AddListener(position => tooltip.Hide());
+        }
+        if (tooltip.IsShownFor(item))
+        {
+            EquipItem(item);
+            return;
+        }
+        tooltip.Show(item, equipCharacter.Equipped(equipSlot), objectPanel.GetComponent<RectTransform>(), () => EquipItem(item));
+    }
+
     /// <summary>Equips the item in the slot the panel was opened for, then goes back to the crew.</summary>
     public void EquipItem(Item item)
     {
         if (!IsEquipMode || CharacterManager.Instance.isBusy) return;
-        CharacterManager.Instance.Equip(equipCharacter, equipSlot, item, BackToTeam);
+        CharacterManager.Instance.Equip(equipCharacter, equipSlot, item, ok =>
+        {
+            if (ok) SoundManager.Play(Sfx.Equip);
+            BackToTeam(ok);
+        });
     }
 
     public void UnequipItem()
     {
         if (!IsEquipMode || CharacterManager.Instance.isBusy) return;
-        CharacterManager.Instance.Unequip(equipCharacter, equipSlot, BackToTeam);
+        CharacterManager.Instance.Unequip(equipCharacter, equipSlot, ok =>
+        {
+            if (ok) SoundManager.Play(Sfx.Unequip);
+            BackToTeam(ok);
+        });
+    }
+
+    /// <summary>Goes back to the crew, leaving the slot as it is.</summary>
+    public void CancelEquip()
+    {
+        if (!IsEquipMode || CharacterManager.Instance.isBusy) return;
+        TeamPanel.instance.Show();
     }
 
     private void BackToTeam(bool ok)
@@ -86,6 +128,7 @@ public class InventoryPanel : Panel
         sellNoButton.SetActive(false);
         sellYesButton.SetActive(false);
         autoSelectButton.SetActive(false);
+        if (tooltip != null) tooltip.Hide();
         //init
         for (int i = 0; i < listObject.transform.childCount; i++)
         {
@@ -113,11 +156,13 @@ public class InventoryPanel : Panel
         }
         UpdateTitle();
         UpdateUnequipButton();
+        UpdateCancelButton();
         float width = listObject.GetComponent<RectTransform>().rect.width;
         Vector2 newSize = new Vector2(width / 3, width / 3);
         listObject.GetComponent<GridLayoutGroup>().cellSize = newSize;
 
-        UIManager.instance.setCameraPosition(CameraMovement.POSITION_INVENTORY);
+        // the choice of an equipment is a step of the crew screen: the camera stays on the crew
+        if (!IsEquipMode) UIManager.instance.setCameraPosition(CameraMovement.POSITION_INVENTORY);
     }
 
     private void UpdateTitle()
@@ -149,12 +194,67 @@ public class InventoryPanel : Panel
             Text[] texts = unequipButton.GetComponentsInChildren<Text>(true);
             if (texts.Length > 0) texts[0].text = "Retirer";
             if (texts.Length > 1) texts[1].text = "l'objet";
+            // the texts were sized for "Auto" and "Selection": a longer word was cut ("Reti")
+            foreach (Text text in texts)
+            {
+                RectTransform textRect = text.rectTransform;
+                textRect.sizeDelta = new Vector2(Mathf.Max(textRect.sizeDelta.x, rect.rect.width * 0.9f), textRect.sizeDelta.y);
+                UIBuilder.FitOneLine(text);
+            }
             Button button = unequipButton.GetComponent<Button>();
             // the copy must not open the auto select panel
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(UnequipItem);
         }
         unequipButton.SetActive(needed);
+    }
+
+    /// <summary>
+    /// The arrow at the bottom right of the panel, shown while a slot is being filled: back to the crew without
+    /// any change. The list keeps some room below its last row, so that the button never hides an item.
+    /// </summary>
+    private void UpdateCancelButton()
+    {
+        GridLayoutGroup grid = listObject.GetComponent<GridLayoutGroup>();
+        if (listPaddingBottom < 0) listPaddingBottom = grid.padding.bottom;
+        float side = sellModeButton.GetComponent<RectTransform>().rect.height * 1.4f;
+        grid.padding.bottom = listPaddingBottom + (IsEquipMode ? Mathf.CeilToInt(side * 1.2f) : 0);
+
+        if (cancelButton == null)
+        {
+            if (!IsEquipMode) return;
+            Text[] texts = autoSelectButton.GetComponentsInChildren<Text>(true);
+            Color iconColor = texts.Length > 0 ? texts[0].color : Color.black;
+            // same look as the other buttons of the panel, with an arrow instead of the texts
+            cancelButton = Instantiate(autoSelectButton, panel.transform);
+            cancelButton.name = "CancelEquipButton";
+            foreach (Text text in cancelButton.GetComponentsInChildren<Text>(true))
+            {
+                Destroy(text.gameObject);
+            }
+            RectTransform rect = cancelButton.GetComponent<RectTransform>();
+            // bottom right, left of the scrollbar
+            rect.anchorMin = rect.anchorMax = new Vector2(0.95f, 0.03f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(side, side);
+            Sprite arrow = UIBuilder.PixelSprite(
+                "..#......",
+                ".##......",
+                "#######..",
+                ".##...##.",
+                "..#....##",
+                "......##.",
+                "..#####..");
+            RectTransform icon = UIBuilder.Child("Arrow", rect, new Vector2(0.2f, 0.2f), new Vector2(0.8f, 0.8f));
+            UIBuilder.Image(icon, arrow, iconColor, false).preserveAspect = true;
+            Button button = cancelButton.GetComponent<Button>();
+            // the copy must not open the auto select panel
+            button.onClick = new Button.ButtonClickedEvent();
+            button.onClick.AddListener(CancelEquip);
+        }
+        cancelButton.transform.SetAsLastSibling();
+        cancelButton.SetActive(IsEquipMode);
     }
 
     public void ToggleSellMode()
@@ -198,7 +298,7 @@ public class InventoryPanel : Panel
         }
         if (nb > 0)
         {
-            MessagePanel.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost);
+            MessagePanel.instance.DisplayMessage("Vendu !", nb + " objets ont été vendu pour " + cost, Sfx.Coins);
             ToggleSellMode();
             Close();
         }

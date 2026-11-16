@@ -60,6 +60,7 @@ public class ExpeditionRunPanel : MonoBehaviour
             rb.velocity = Vector2.zero;
             rb.constraints = RigidbodyConstraints2D.FreezeAll;
             target.Reach();
+            SoundManager.Play(Sfx.EventReach, 1f, 0.6f);
             expedition.floorsCompleted++;
             endMiniGame = true;
             updateUI();
@@ -97,6 +98,7 @@ public class ExpeditionRunPanel : MonoBehaviour
     public void Touch()
     {
         if (endMiniGame) return;
+        SoundManager.Play(Sfx.Step, 1f, 0.7f);
         rb.AddForce(new Vector2(walkSpeed, 0f));
         displayTuto = false;
         UpdateCrewPosition();

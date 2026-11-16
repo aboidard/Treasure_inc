@@ -73,7 +73,10 @@ public class SendExpeditionPanel : Panel
 
     public void OnValueChangedSlider()
     {
-        floor = (int)Math.Round(floorSlider.value);
+        int value = (int)Math.Round(floorSlider.value);
+        // one tick per floor, higher as the expedition goes deeper
+        if (value != floor) SoundManager.Play(Sfx.Tick, 0.8f + 0.04f * value);
+        floor = value;
         UpdateUI();
     }
 

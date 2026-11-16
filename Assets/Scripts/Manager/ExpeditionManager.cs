@@ -161,6 +161,7 @@ public class ExpeditionManager : MonoBehaviour
         expedition.panelRun.GetComponent<ExpeditionRunPanel>().SetExpedition(expedition);
         expedition.Init();
         expeditionList.Add(expedition);
+        SoundManager.Play(Sfx.ExpeditionSend);
 
         Debug.Log("Expedition send " + expedition);
         onSuccess?.Invoke();
@@ -169,6 +170,7 @@ public class ExpeditionManager : MonoBehaviour
     public void ExpeditionReturn(Expedition ex)
     {
         Debug.Log("Expedition returned : " + ex);
+        SoundManager.Play(Sfx.ExpeditionReturn);
         GameObject lootButton = Instantiate(LootButtonPrefab, LootPanelGrid.transform);
         lootButton.GetComponent<LootButton>().ex = ex;
     }
