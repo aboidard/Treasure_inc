@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Inventory.Instance.UpdateMoneyUI();
+        Inventory.Instance.UpdateGemsUI();
     }
 
     public void FixedUpdate()

@@ -89,7 +89,8 @@ public class QuestManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Takes the reward of a completed quest: the money and the items are added to those of the user. onDone
+    /// Takes the reward of a completed quest (or of the daily bonus): the money, the gems and the items are added to
+    /// those of the user. onDone
     /// receives what the quest gave and its items, now in the inventory, or nulls when nothing was given (the
     /// message is already shown).
     /// </summary>
@@ -125,6 +126,7 @@ public class QuestManager : MonoBehaviour
 
         QuestClaimResponse claimed = JsonConvert.DeserializeObject<QuestClaimResponse>(response);
         Inventory.Instance.CurrentMoney = claimed.money;
+        Inventory.Instance.CurrentGems = claimed.gems;
         List<Item> given = new List<Item>();
         foreach (ItemAPI it in claimed.reward?.items ?? new List<ItemAPI>())
         {

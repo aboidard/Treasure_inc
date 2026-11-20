@@ -21,6 +21,11 @@ public class QuestBoardAPI
     /// <summary>Seconds left, when the answer was made, before the board is replaced by a new one.</summary>
     public long resetIn { get; set; }
     public List<QuestAPI> quests { get; set; }
+    /// <summary>
+    /// The daily bonus ("daily_bonus"), only on the daily board: a quest like the others, whose progress is how many
+    /// of the daily quests are completed. It is claimed like the others and pays gems. Null on the weekly board.
+    /// </summary>
+    public QuestAPI bonus { get; set; }
 }
 
 [System.Serializable]
@@ -46,6 +51,7 @@ public class QuestRewardAPI
     public int money { get; set; }
     /// <summary>How many items the quest gives.</summary>
     public int items { get; set; }
+    public int gems { get; set; }
 }
 
 /// <summary>The answer to a claimed quest: what it gave, and the state of the user afterwards.</summary>
@@ -53,8 +59,9 @@ public class QuestRewardAPI
 public class QuestClaimResponse
 {
     public string quest { get; set; }
-    /// <summary>The balance of the user afterwards.</summary>
+    /// <summary>The balances of the user afterwards.</summary>
     public int money { get; set; }
+    public int gems { get; set; }
     public QuestClaimRewardAPI reward { get; set; }
     public QuestsAPI quests { get; set; }
 }
@@ -63,11 +70,15 @@ public class QuestClaimResponse
 public class QuestClaimRewardAPI
 {
     public int money { get; set; }
+    public int gems { get; set; }
     public List<ItemAPI> items { get; set; }
 }
 
 public static class Quest
 {
+    /// <summary>The id of the daily bonus, claimed like a quest.</summary>
+    public const string BonusId = "daily_bonus";
+
     /// <summary>The sentence of a quest, from what it counts and how many times.</summary>
     public static string Describe(QuestAPI quest)
     {
@@ -83,6 +94,7 @@ public static class Quest
             case "recruits": return "Invoquez " + goal + " personnages";
             case "sales": return "Vendez " + goal + " objets";
             case "digs": return "Creusez " + goal + " cases";
+            case "quests": return "Accomplissez " + goal + " quêtes quotidiennes";
             // a quest added to the server after this version of the game
             default: return "Quête mystère (" + quest.metric + ") : " + goal;
         }
@@ -91,9 +103,11 @@ public static class Quest
     public static string Reward(QuestRewardAPI reward)
     {
         if (reward == null) return "";
-        string text = UIBuilder.Number(reward.money) + " pièces";
-        if (reward.items > 0) text += " + " + reward.items + (reward.items > 1 ? " objets" : " objet");
-        return text;
+        List<string> parts = new List<string>();
+        if (reward.money > 0) parts.Add(UIBuilder.Number(reward.money) + " pièces");
+        if (reward.gems > 0) parts.Add(Gems.Amount(reward.gems));
+        if (reward.items > 0) parts.Add(reward.items + (reward.items > 1 ? " objets" : " objet"));
+        return string.Join(" + ", parts);
     }
 
     /// <summary>"3 j 4 h", "5 h 12 min", "12 min" or "45 s".</summary>

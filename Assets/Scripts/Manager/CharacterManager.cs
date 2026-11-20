@@ -88,7 +88,7 @@ public class CharacterManager : MonoBehaviour
 
     /// <summary>
     /// Pays for "count" draws in the portal. The server chooses the characters: onDone receives them in the order
-    /// they were drawn, once the characters and the money of the user are up to date, or null when nothing was drawn
+    /// they were drawn, once the characters and the gems of the user are up to date, or null when nothing was drawn
     /// (the message is already shown).
     /// </summary>
     public void Recruit(PortalAPI portal, int count, Action<RecruitResponse> onDone)
@@ -101,7 +101,7 @@ public class CharacterManager : MonoBehaviour
             {
                 drawn = JsonConvert.DeserializeObject<RecruitResponse>(response);
                 Apply(drawn.characters);
-                Inventory.Instance.CurrentMoney = drawn.money;
+                Inventory.Instance.CurrentGems = drawn.gems;
                 // the draws count for the quests
                 QuestManager.Instance.Refresh();
             }));
@@ -187,7 +187,7 @@ public class CharacterManager : MonoBehaviour
     {
         switch (status)
         {
-            case 402: return "Vous n'avez pas assez d'argent pour cette invocation.";
+            case 402: return "Vous n'avez pas assez de gemmes pour cette invocation.";
             case 404: return "Ce portail n'existe plus.";
             default: return "Le portail ne répond pas, veuillez réessayer ultérieurement !\n" + response;
         }

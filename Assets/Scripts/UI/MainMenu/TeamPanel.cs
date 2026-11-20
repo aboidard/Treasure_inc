@@ -165,6 +165,7 @@ public class TeamPanel : Panel
         HookMenuButton();
         RecruitPanel.Create(panel);
         QuestPanel.Create(panel);
+        GiftPanel.Create(panel);
 
         CharacterManager.Instance.SetPortraits(portraits);
         CharacterManager.Instance.Refresh(ok =>
