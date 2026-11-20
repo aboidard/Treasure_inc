@@ -108,6 +108,7 @@ public class MainMenu : MonoBehaviour
                         NetworkManager.client.DefaultRequestHeaders.Add("X-PRIVATE-KEY", NetworkManager.Instance.privateKey);
                     }
                     Inventory.Instance.CurrentMoney = user.money;
+                    Inventory.Instance.CurrentGems = user.gems;
                     NetworkManager.logedIn = true;
                 }
             }

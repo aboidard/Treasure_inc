@@ -46,6 +46,9 @@ public class NetworkManager : MonoBehaviour
     public static string questsEndPoint = "/V1/user/{0}/quests";
     // {1} is the id of the quest
     public static string claimQuestEndPoint = "/V1/user/{0}/quests/{1}/claim";
+    public static string giftsEndPoint = "/V1/user/{0}/gifts";
+    // {1} is the id of the gift
+    public static string claimGiftEndPoint = "/V1/user/{0}/gifts/{1}/claim";
 
     public static NetworkManager Instance
     {

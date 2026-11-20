@@ -15,5 +15,7 @@ public class User
     [JsonProperty("lastLogin")]
     public string lastLogin { get; set; }
     public int money { get; set; }
+    /// <summary>The premium currency: it pays the summons.</summary>
+    public int gems { get; set; }
 
 }

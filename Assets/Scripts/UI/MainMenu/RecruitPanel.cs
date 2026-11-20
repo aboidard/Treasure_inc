@@ -24,6 +24,8 @@ public class RecruitPanel : Panel
     private Text collectionTitle;
     private Text singleLabel;
     private Text multiLabel;
+    private Text singleCost;
+    private Text multiCost;
     private Button singleButton;
     private Button multiButton;
     private RectTransform collection;
@@ -104,6 +106,8 @@ public class RecruitPanel : Panel
             "", 40, () => Draw(portal != null ? portal.multi : 0));
         singleLabel = singleButton.GetComponentInChildren<Text>();
         multiLabel = multiButton.GetComponentInChildren<Text>();
+        singleCost = CostRow(singleButton, singleLabel);
+        multiCost = CostRow(multiButton, multiLabel);
 
         collectionTitle = UIBuilder.Text(UIBuilder.Child("CollectionTitle", root, new Vector2(0.06f, 0.465f), new Vector2(0.94f, 0.5f)),
             model, "", 34, TextAnchor.MiddleLeft);
@@ -112,6 +116,22 @@ public class RecruitPanel : Panel
         CharacterFilterBar.Create(UIBuilder.Child("Filters", root, new Vector2(0.04f, 0.422f), new Vector2(0.96f, 0.458f)),
             options, false, Render);
         collection = UIBuilder.Child("Collection", root, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.414f));
+    }
+
+    /// <summary>
+    /// The label of a summon button keeps the top half; the bottom half shows the price, followed by a gem: the
+    /// summons are paid in gems.
+    /// </summary>
+    private static Text CostRow(Button button, Text label)
+    {
+        RectTransform labelRect = label.rectTransform;
+        labelRect.anchorMin = new Vector2(0.06f, 0.5f);
+        labelRect.anchorMax = new Vector2(0.94f, 0.92f);
+        Text cost = UIBuilder.Text(UIBuilder.Child("Cost", button.transform, new Vector2(0.06f, 0.08f), new Vector2(0.6f, 0.5f)),
+            UIBuilder.ModelText, "", 40, TextAnchor.MiddleRight);
+        cost.color = label.color;
+        Gems.AddIcon(button.transform, new Vector2(0.62f, 0.1f), new Vector2(0.8f, 0.48f));
+        return cost;
     }
 
     void Update()
@@ -166,6 +186,8 @@ public class RecruitPanel : Panel
             collectionTitle.text = "";
             singleLabel.text = "Invoquer x1";
             multiLabel.text = "Invoquer x10";
+            singleCost.text = "";
+            multiCost.text = "";
             return;
         }
 
@@ -174,8 +196,10 @@ public class RecruitPanel : Panel
         portalContent.text = content.Count + " personnages";
         rates.text = string.Join("\n", (portal.rates ?? new List<RankRateAPI>()).Select(rate =>
             CharacterRank.Colored(rate.rank) + "   " + rate.percent.ToString("0.##", CultureInfo.InvariantCulture).Replace(".", ",") + " %"));
-        singleLabel.text = "Invoquer x1\n" + UIBuilder.Number(portal.cost);
-        multiLabel.text = "Invoquer x" + portal.multi + "\n" + UIBuilder.Number(portal.cost * portal.multi);
+        singleLabel.text = "Invoquer x1";
+        multiLabel.text = "Invoquer x" + portal.multi;
+        singleCost.text = UIBuilder.Number(portal.cost);
+        multiCost.text = UIBuilder.Number(portal.cost * portal.multi);
 
         int owned = content.Count(c => CharacterManager.Instance.Get(c.num) != null);
         collectionTitle.text = "Collection : " + owned + " / " + content.Count;
@@ -256,10 +280,11 @@ public class RecruitPanel : Panel
     private void Draw(int count)
     {
         if (portal == null || count < 1 || CharacterManager.Instance.isBusy || SummonAnimation.IsPlaying) return;
-        if (Inventory.Instance.CurrentMoney < portal.cost * count)
+        if (Inventory.Instance.CurrentGems < portal.cost * count)
         {
-            MessagePanel.instance.DisplayMessage("Pas assez d'argent",
-                "Il faut " + UIBuilder.Number(portal.cost * count) + " pour cette invocation.");
+            MessagePanel.instance.DisplayMessage("Pas assez de gemmes",
+                "Il faut " + Gems.Amount(portal.cost * count) + " pour cette invocation.\n"
+                + "Terminez vos quêtes quotidiennes pour remporter le super-bonus de gemmes, et ouvrez vos cadeaux !");
             return;
         }
         CharacterManager.Instance.Recruit(portal, count, response =>

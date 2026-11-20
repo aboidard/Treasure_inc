@@ -7,6 +7,8 @@ using UnityEngine.UI;
 /// The quests: a few objectives drawn by the server each day, and a few longer ones each week. Each quest shows
 /// how far it is and what it gives; the chest of a completed quest gives its reward (money and items) when it is
 /// clicked. A reward that was not taken is lost when new quests replace the old ones.
+/// Under the daily quests, the recap of the daily bonus counts how many of them are completed: when they all are,
+/// its chest gives gems.
 /// The scene has no such panel: it is built by code with the frame of the crew panel (see Create), and opened by
 /// the QuestButton at the top left of the screen.
 /// </summary>
@@ -22,8 +24,8 @@ public class QuestPanel : Panel
     private static readonly Color barColor = new Color(1f, 0.75f, 0f);
     private static readonly Color doneColor = new Color(0.4f, 0.9f, 0.4f);
     private static readonly Color rewardColor = new Color(1f, 0.88f, 0.45f);
-    private static readonly Color chestColor = new Color(1f, 0.72f, 0.1f);
-    private static readonly Color chestDetailColor = new Color(0.36f, 0.2f, 0.04f);
+    public static readonly Color chestColor = new Color(1f, 0.72f, 0.1f);
+    public static readonly Color chestDetailColor = new Color(0.36f, 0.2f, 0.04f);
     private static readonly Color lockedChestColor = new Color(1f, 1f, 1f, 0.28f);
     private static readonly Color lockedDetailColor = new Color(0f, 0f, 0f, 0.3f);
 
@@ -31,8 +33,28 @@ public class QuestPanel : Panel
     private static Sprite chestDetail;
     private static Sprite check;
 
+    private static readonly Color bonusBackColor = new Color(0.42f, 0.2f, 0.02f, 0.55f);
+    private static readonly Color bonusTitleColor = new Color(1f, 0.82f, 0.25f);
+    private static readonly Color bonusRewardColor = new Color(1f, 0.93f, 0.6f);
+    private static readonly Color pipOffColor = new Color(0f, 0f, 0f, 0.55f);
+    // how long a gem of the counter takes to settle when it lights up
+    private const float popDuration = 0.45f;
+
     private RectTransform dailyList;
     private RectTransform weeklyList;
+    // the recap of the daily bonus, under the daily quests
+    private RectTransform bonusRecap;
+    private RectTransform bonusReward;
+    private RectTransform bonusGem;
+    private RectTransform bonusChest;
+    private readonly List<RectTransform> pips = new List<RectTransform>();
+    private bool bonusWaiting;
+    private bool bonusFull;
+    // what the counter showed last time, so that the gems lit since then pop; -1 before the first rendering
+    private int shownProgress = -1;
+    private string shownPeriod;
+    private float popStart = -10f;
+    private int popFrom;
     private Text dailyTimer;
     private Text weeklyTimer;
     // the chests that can be opened: they beat
@@ -92,7 +114,9 @@ public class QuestPanel : Panel
             model, "Quotidiennes", 46, TextAnchor.MiddleLeft);
         dailyTimer = UIBuilder.Text(UIBuilder.Child("DailyTimer", root, new Vector2(0.5f, 0.87f), new Vector2(0.95f, 0.915f)),
             model, "", 32, TextAnchor.MiddleRight);
-        dailyList = UIBuilder.Child("Daily", root, new Vector2(0.04f, 0.505f), new Vector2(0.96f, 0.865f));
+        dailyList = UIBuilder.Child("Daily", root, new Vector2(0.04f, 0.625f), new Vector2(0.96f, 0.865f));
+        // right after the daily quests, the recap of the bonus they give together
+        bonusRecap = UIBuilder.Child("DailyBonus", root, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 0.618f));
 
         UIBuilder.Text(UIBuilder.Child("WeeklyTitle", root, new Vector2(0.05f, 0.445f), new Vector2(0.5f, 0.49f)),
             model, "Hebdomadaires", 46, TextAnchor.MiddleLeft);
@@ -132,6 +156,7 @@ public class QuestPanel : Panel
         {
             if (chest != null) chest.localScale = Vector3.one * beat;
         }
+        AnimateBonus();
         if (Time.unscaledTime >= nextTimerUpdate)
         {
             nextTimerUpdate = Time.unscaledTime + timerPeriod;
@@ -144,8 +169,160 @@ public class QuestPanel : Panel
         waiting.Clear();
         QuestsAPI quests = QuestManager.Instance.quests;
         Fill(dailyList, quests != null ? quests.daily : null);
+        FillBonus(quests != null && quests.daily != null ? quests.daily : null);
         Fill(weeklyList, quests != null ? quests.weekly : null);
         RenderTimers();
+    }
+
+    // ---- the daily bonus: a counter of the daily quests completed, and its reward in gems
+
+    /// <summary>A sentence for each step of the counter, from nothing done to the bonus taken.</summary>
+    private static string BonusMood(QuestAPI bonus)
+    {
+        if (bonus.claimed) return "Gemmes empochées. Revenez demain pour remettre ça !";
+        if (bonus.completed) return "JACKPOT ! Le coffre à gemmes vous attend !";
+        int left = bonus.goal - bonus.progress;
+        if (bonus.progress == 0) return "Au boulot, chasseur de trésors !";
+        if (left == 1) return "Plus qu'une ! Ça sent la gemme...";
+        return "Encore " + left + " quêtes et les gemmes sont à vous !";
+    }
+
+    /// <summary>
+    /// The recap of the daily bonus: its counter (a gem lights up for each daily quest completed), a sentence that
+    /// follows it, and its reward, big, with the chest that gives it once the counter is full.
+    /// </summary>
+    private void FillBonus(QuestBoardAPI daily)
+    {
+        for (int i = bonusRecap.childCount - 1; i >= 0; i--)
+        {
+            Destroy(bonusRecap.GetChild(i).gameObject);
+        }
+        pips.Clear();
+        bonusReward = null;
+        bonusGem = null;
+        bonusChest = null;
+        bonusWaiting = false;
+        bonusFull = false;
+        Image back = bonusRecap.GetComponent<Image>();
+        if (back == null) back = UIBuilder.Image(bonusRecap, null, bonusBackColor, false);
+        QuestAPI bonus = daily != null ? daily.bonus : null;
+        back.enabled = bonus != null;
+        if (bonus == null) return;
+
+        Text model = UIBuilder.ModelText;
+        Text title = UIBuilder.Text(UIBuilder.Child("Title", bonusRecap, new Vector2(0.03f, 0.66f), new Vector2(0.62f, 0.97f)),
+            model, "Super-bonus du jour", 40, TextAnchor.MiddleLeft);
+        title.color = bonusTitleColor;
+        AddShadow(title);
+        Text mood = UIBuilder.Text(UIBuilder.Child("Mood", bonusRecap, new Vector2(0.03f, 0.42f), new Vector2(0.62f, 0.66f)),
+            model, BonusMood(bonus), 28, TextAnchor.MiddleLeft);
+        mood.color = Color.white;
+
+        // the counter: one gem for each daily quest to complete, lit when it is
+        int goal = Mathf.Max(1, bonus.goal);
+        RectTransform counter = UIBuilder.Child("Counter", bonusRecap, new Vector2(0.03f, 0.04f), new Vector2(0.38f, 0.42f));
+        for (int i = 0; i < goal; i++)
+        {
+            RectTransform pip = UIBuilder.Child("Pip" + i, counter, new Vector2(i / (float)goal, 0f), new Vector2((i + 1) / (float)goal, 1f));
+            Image gem = UIBuilder.Image(pip, Gems.Icon, i < bonus.progress ? Color.white : pipOffColor, false);
+            gem.preserveAspect = true;
+            pips.Add(pip);
+        }
+        Text count = UIBuilder.Text(UIBuilder.Child("Count", bonusRecap, new Vector2(0.39f, 0.02f), new Vector2(0.62f, 0.44f)),
+            model, bonus.progress + " / " + goal, 52, TextAnchor.MiddleCenter);
+        count.color = bonus.completed ? doneColor : Color.white;
+        AddShadow(count);
+
+        // the reward, in the spotlight
+        bonusReward = UIBuilder.Child("Reward", bonusRecap, new Vector2(0.63f, 0.5f), new Vector2(0.85f, 0.97f));
+        int gems = bonus.reward != null ? bonus.reward.gems : 0;
+        Text reward = UIBuilder.Text(bonusReward, model, "+" + UIBuilder.Number(gems), 60, TextAnchor.MiddleRight);
+        reward.color = bonus.claimed ? new Color(1f, 1f, 1f, 0.5f) : bonusRewardColor;
+        AddShadow(reward);
+        Image icon = Gems.AddIcon(bonusRecap, new Vector2(0.86f, 0.52f), new Vector2(0.985f, 0.95f));
+        bonusGem = icon.rectTransform;
+        if (bonus.claimed) icon.color = new Color(1f, 1f, 1f, 0.5f);
+
+        RectTransform claim = UIBuilder.Child("Claim", bonusRecap, new Vector2(0.63f, 0.03f), new Vector2(0.985f, 0.5f));
+        if (bonus.claimed)
+        {
+            Image done = UIBuilder.Image(UIBuilder.Child("Check", claim, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(88f, 56f)),
+                Check, doneColor, false);
+            done.preserveAspect = true;
+        }
+        else
+        {
+            bool claimable = bonus.IsClaimable;
+            Image hit = UIBuilder.Image(claim, null, new Color(0f, 0f, 0f, 0f), claimable);
+            bonusChest = UIBuilder.Child("Chest", claim, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(112f, 84f));
+            UIBuilder.Image(bonusChest, ChestBody, claimable ? chestColor : lockedChestColor, false);
+            UIBuilder.Image(UIBuilder.Child("Detail", bonusChest, Vector2.zero, Vector2.one),
+                ChestDetail, claimable ? chestDetailColor : lockedDetailColor, false);
+            if (claimable)
+            {
+                Button button = claim.gameObject.AddComponent<Button>();
+                button.targetGraphic = hit;
+                button.transition = Selectable.Transition.None;
+                button.onClick.AddListener(() => Claim(bonus));
+                bonusWaiting = true;
+            }
+        }
+        bonusFull = bonus.completed && !bonus.claimed;
+
+        // the gems lit since the last time pop; a new day starts the counter again without a pop
+        if (shownPeriod == daily.period && shownProgress >= 0 && bonus.progress > shownProgress)
+        {
+            popFrom = shownProgress;
+            popStart = Time.unscaledTime;
+        }
+        shownPeriod = daily.period;
+        shownProgress = bonus.progress;
+    }
+
+    private void AnimateBonus()
+    {
+        float time = Time.unscaledTime;
+        if (bonusReward != null)
+        {
+            // the reward always breathes; much more when it waits to be taken
+            float amplitude = bonusWaiting ? 0.1f : 0.035f;
+            bonusReward.localScale = Vector3.one * (1f + amplitude * Mathf.Sin(time * (bonusWaiting ? 6f : 2.5f)));
+        }
+        if (bonusGem != null)
+        {
+            bonusGem.localRotation = Quaternion.Euler(0f, 0f, 12f * Mathf.Sin(time * 3f));
+        }
+        if (bonusChest != null && bonusWaiting)
+        {
+            // the chest jumps up and down, and shakes a little
+            bonusChest.localScale = Vector3.one * (1f + 0.08f * Mathf.Abs(Mathf.Sin(time * 5f)));
+            bonusChest.localRotation = Quaternion.Euler(0f, 0f, 6f * Mathf.Sin(time * 14f));
+        }
+        for (int i = 0; i < pips.Count; i++)
+        {
+            if (pips[i] == null) continue;
+            float scale = 1f;
+            float since = time - popStart;
+            if (i >= popFrom && i < shownProgress && since < popDuration)
+            {
+                // a gem that just lit up: big, then it settles with a bounce
+                float t = since / popDuration;
+                scale = 1f + 0.8f * (1f - t) * Mathf.Abs(Mathf.Cos(t * Mathf.PI * 2f));
+            }
+            else if (bonusFull)
+            {
+                // the counter is full: a wave runs through its gems
+                scale = 1f + 0.12f * Mathf.Max(0f, Mathf.Sin(time * 4f - i * 0.9f));
+            }
+            pips[i].localScale = Vector3.one * scale;
+        }
+    }
+
+    private static void AddShadow(Text text)
+    {
+        Shadow shadow = text.gameObject.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
+        shadow.effectDistance = new Vector2(2f, -2f);
     }
 
     private void RenderTimers()
@@ -248,13 +425,18 @@ public class QuestPanel : Panel
             if (claimed == null) return;
             SoundManager.Play(Sfx.Coins);
             int money = claimed.reward != null ? claimed.reward.money : 0;
-            LootPanel.instance.ShowItems("Quête accomplie !  +" + UIBuilder.Number(money) + " pièces", items);
+            int gems = claimed.reward != null ? claimed.reward.gems : 0;
+            string gains = (money > 0 ? "  +" + UIBuilder.Number(money) + " pièces" : "")
+                + (gems > 0 ? "  +" + Gems.Amount(gems) : "");
+            string title = quest.id == Quest.BonusId ? "Super-bonus du jour !" : "Quête accomplie !";
+            LootPanel.instance.ShowItems(title + gains, items);
         });
     }
 
     // ---- the icons, drawn in two layers so that the chest and its fittings have their own color
 
-    private static Sprite ChestBody
+    /// <summary>The chest of a reward to take (the quests, the gift box): its body...</summary>
+    public static Sprite ChestBody
     {
         get
         {
@@ -278,7 +460,8 @@ public class QuestPanel : Panel
         }
     }
 
-    private static Sprite ChestDetail
+    /// <summary>...and its fittings, drawn over it in another color.</summary>
+    public static Sprite ChestDetail
     {
         get
         {
