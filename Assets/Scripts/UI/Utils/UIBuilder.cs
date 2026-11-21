@@ -103,6 +103,8 @@ public static class UIBuilder
     {
         text.resizeTextForBestFit = false;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        // a line taller than the rectangle would hide the text instead of overflowing
+        text.verticalOverflow = VerticalWrapMode.Overflow;
         float available = text.rectTransform.rect.width;
         float needed = text.preferredWidth;
         if (available > 0 && needed > available)
