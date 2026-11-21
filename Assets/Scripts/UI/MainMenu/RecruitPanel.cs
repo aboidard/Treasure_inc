@@ -20,6 +20,7 @@ public class RecruitPanel : Panel
 
     private Text portalName;
     private Text portalContent;
+    private Text rateRanks;
     private Text rates;
     private Text collectionTitle;
     private Text singleLabel;
@@ -96,9 +97,18 @@ public class RecruitPanel : Panel
         portalName = UIBuilder.Text(UIBuilder.Child("PortalName", root, new Vector2(0.48f, 0.86f), new Vector2(0.95f, 0.915f)),
             model, "", 52, TextAnchor.MiddleLeft);
         portalContent = UIBuilder.Text(UIBuilder.Child("PortalContent", root, new Vector2(0.48f, 0.825f), new Vector2(0.95f, 0.86f)),
-            model, "", 32, TextAnchor.MiddleLeft);
-        rates = UIBuilder.Text(UIBuilder.Child("Rates", root, new Vector2(0.48f, 0.615f), new Vector2(0.95f, 0.82f)),
-            model, "", 34, TextAnchor.UpperLeft);
+            model, "", 38, TextAnchor.MiddleLeft);
+        // the chances on a dark box, the rank in its color and its percent in white, both outlined: the colors of
+        // the ranks are too light to be read on the panel itself
+        RectTransform ratesBox = UIBuilder.Child("Rates", root, new Vector2(0.48f, 0.615f), new Vector2(0.95f, 0.82f));
+        UIBuilder.Image(ratesBox, null, new Color(0f, 0f, 0f, 0.35f), false);
+        rateRanks = UIBuilder.Text(UIBuilder.Child("Ranks", ratesBox, new Vector2(0.08f, 0.04f), new Vector2(0.45f, 0.96f)),
+            model, "", 44, TextAnchor.MiddleLeft);
+        rates = UIBuilder.Text(UIBuilder.Child("Percents", ratesBox, new Vector2(0.45f, 0.04f), new Vector2(0.92f, 0.96f)),
+            model, "", 44, TextAnchor.MiddleRight);
+        rates.color = Color.white;
+        Readable(rateRanks);
+        Readable(rates);
 
         singleButton = UIBuilder.Button(UIBuilder.Child("Single", root, new Vector2(0.06f, 0.51f), new Vector2(0.48f, 0.595f)),
             "", 40, () => Draw(1));
@@ -110,12 +120,23 @@ public class RecruitPanel : Panel
         multiCost = CostRow(multiButton, multiLabel);
 
         collectionTitle = UIBuilder.Text(UIBuilder.Child("CollectionTitle", root, new Vector2(0.06f, 0.465f), new Vector2(0.94f, 0.5f)),
-            model, "", 34, TextAnchor.MiddleLeft);
+            model, "", 40, TextAnchor.MiddleLeft);
         // the strongest first, until the user sorts them otherwise: what the portal promises
         options = CharacterListOptions.For("recruit", CharacterSort.Rank, true);
         CharacterFilterBar.Create(UIBuilder.Child("Filters", root, new Vector2(0.04f, 0.422f), new Vector2(0.96f, 0.458f)),
             options, false, Render);
         collection = UIBuilder.Child("Collection", root, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.414f));
+    }
+
+    /// <summary>
+    /// A dark shadow under a text, so that it stays readable in any color on any background. A shadow rather than
+    /// an outline: an outline thickens the strokes of the pixel font and makes everything look bold.
+    /// </summary>
+    private static void Readable(Text text)
+    {
+        Shadow shadow = text.gameObject.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.75f);
+        shadow.effectDistance = new Vector2(2f, -2f);
     }
 
     /// <summary>
@@ -125,12 +146,34 @@ public class RecruitPanel : Panel
     private static Text CostRow(Button button, Text label)
     {
         RectTransform labelRect = label.rectTransform;
-        labelRect.anchorMin = new Vector2(0.06f, 0.5f);
-        labelRect.anchorMax = new Vector2(0.94f, 0.92f);
-        Text cost = UIBuilder.Text(UIBuilder.Child("Cost", button.transform, new Vector2(0.06f, 0.08f), new Vector2(0.6f, 0.5f)),
-            UIBuilder.ModelText, "", 40, TextAnchor.MiddleRight);
+        labelRect.anchorMin = new Vector2(0.06f, 0.54f);
+        labelRect.anchorMax = new Vector2(0.94f, 0.9f);
+        labelRect.offsetMin = Vector2.zero;
+        labelRect.offsetMax = Vector2.zero;
+        label.alignment = TextAnchor.MiddleCenter;
+
+        // the price and its gem side by side, the pair centered whatever the width of the number
+        RectTransform row = UIBuilder.Child("CostRow", button.transform, new Vector2(0.06f, 0.22f), new Vector2(0.94f, 0.52f));
+        HorizontalLayoutGroup layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.spacing = 10f;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+
+        Text cost = UIBuilder.Text(UIBuilder.Child("Cost", row, Vector2.zero, Vector2.one),
+            UIBuilder.ModelText, "", 40, TextAnchor.MiddleCenter);
+        cost.resizeTextForBestFit = false;
+        // a line of the font may be taller than the row: the text would then be hidden instead of overflowing
+        cost.fontSize = 34;
+        cost.horizontalOverflow = HorizontalWrapMode.Overflow;
+        cost.verticalOverflow = VerticalWrapMode.Overflow;
         cost.color = label.color;
-        Gems.AddIcon(button.transform, new Vector2(0.62f, 0.1f), new Vector2(0.8f, 0.48f));
+        Image gem = Gems.AddIcon(row, Vector2.zero, Vector2.one);
+        LayoutElement gemSize = gem.gameObject.AddComponent<LayoutElement>();
+        gemSize.preferredWidth = 46f;
+        gemSize.preferredHeight = 46f;
         return cost;
     }
 
@@ -182,6 +225,7 @@ public class RecruitPanel : Panel
         {
             portalName.text = "Chargement...";
             portalContent.text = "";
+            rateRanks.text = "";
             rates.text = "";
             collectionTitle.text = "";
             singleLabel.text = "Invoquer x1";
@@ -194,8 +238,10 @@ public class RecruitPanel : Panel
         List<CharacterAPI> content = portal.characters ?? new List<CharacterAPI>();
         portalName.text = portal.name;
         portalContent.text = content.Count + " personnages";
-        rates.text = string.Join("\n", (portal.rates ?? new List<RankRateAPI>()).Select(rate =>
-            CharacterRank.Colored(rate.rank) + "   " + rate.percent.ToString("0.##", CultureInfo.InvariantCulture).Replace(".", ",") + " %"));
+        List<RankRateAPI> portalRates = portal.rates ?? new List<RankRateAPI>();
+        rateRanks.text = string.Join("\n", portalRates.Select(rate => CharacterRank.Colored(rate.rank)));
+        rates.text = string.Join("\n", portalRates.Select(rate =>
+            rate.percent.ToString("0.##", CultureInfo.InvariantCulture).Replace(".", ",") + " %"));
         singleLabel.text = "Invoquer x1";
         multiLabel.text = "Invoquer x" + portal.multi;
         singleCost.text = UIBuilder.Number(portal.cost);
@@ -256,6 +302,7 @@ public class RecruitPanel : Panel
         Text rank = UIBuilder.Text(UIBuilder.Child("Rank", frame, new Vector2(0.05f, 0.01f), new Vector2(0.6f, 0.21f)),
             UIBuilder.ModelText, character.rank, 34, TextAnchor.MiddleLeft);
         rank.color = rankColor;
+        Readable(rank);
         if (owned == null)
         {
             Text unknown = UIBuilder.Text(UIBuilder.Child("Unknown", frame, new Vector2(0.2f, 0.35f), new Vector2(0.8f, 0.85f)),
@@ -268,6 +315,7 @@ public class RecruitPanel : Panel
             Text level = UIBuilder.Text(UIBuilder.Child("Level", frame, new Vector2(0.4f, 0.01f), new Vector2(0.95f, 0.21f)),
                 UIBuilder.ModelText, state, 30, TextAnchor.MiddleRight);
             level.color = Color.white;
+            Readable(level);
             if (owned.IsFavorite)
             {
                 Image star = UIBuilder.Image(UIBuilder.Child("Favorite", frame, new Vector2(0.72f, 0.78f), new Vector2(0.96f, 0.97f)),
