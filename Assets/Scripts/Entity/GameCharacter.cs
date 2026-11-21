@@ -175,8 +175,10 @@ public class PortalAPI
 {
     public string id { get; set; }
     public string name { get; set; }
-    /// <summary>Price of one draw.</summary>
+    /// <summary>Price of one draw, in gems (see currency).</summary>
     public int cost { get; set; }
+    /// <summary>What the draws are paid with: "gems".</summary>
+    public string currency { get; set; }
     /// <summary>How many draws the "several draws at once" request makes.</summary>
     public int multi { get; set; }
     /// <summary>The chance of each rank, from the strongest to the weakest.</summary>
@@ -204,7 +206,8 @@ public class RecruitRequest
 public class RecruitResponse
 {
     public List<DrawAPI> draws { get; set; }
-    public int money { get; set; }
+    /// <summary>The gems of the user after the draws.</summary>
+    public int gems { get; set; }
     public List<CharacterAPI> characters { get; set; }
 }
 

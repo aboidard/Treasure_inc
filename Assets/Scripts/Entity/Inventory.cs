@@ -17,6 +17,10 @@ public class Inventory : MonoBehaviour
     [SerializeField]
     private List<Item> items;
     public Text moneyText;
+    /// <summary>The premium currency: it pays the summons.</summary>
+    [SerializeField]
+    private int currentGems = 0;
+    private Text gemsText;
 
     public static Inventory Instance
     {
@@ -51,9 +55,33 @@ public class Inventory : MonoBehaviour
         nfi.NumberGroupSeparator = " ";
         if (moneyText == null)
         {
-            moneyText = GameObject.FindGameObjectsWithTag("MoneyText")[0].GetComponent<Text>();
+            moneyText = FindCounter("MoneyText", true);
         }
         moneyText.text = currentMoney.ToString("#,0", nfi);
+    }
+
+    /// <summary>Shows the gems in the counter of the HUD under the money (the red gem), when the scene has one.</summary>
+    public void UpdateGemsUI()
+    {
+        if (gemsText == null)
+        {
+            gemsText = FindCounter("DiamondsText", false);
+        }
+        if (gemsText != null) gemsText.text = UIBuilder.Number(currentGems);
+    }
+
+    /// <summary>
+    /// The counters of the HUD all have the tag MoneyText: the money and the gems are told apart by their name.
+    /// orAny gives the first one when none has this name.
+    /// </summary>
+    private static Text FindCounter(string name, bool orAny)
+    {
+        GameObject[] counters = GameObject.FindGameObjectsWithTag("MoneyText");
+        foreach (GameObject counter in counters)
+        {
+            if (counter.name == name) return counter.GetComponent<Text>();
+        }
+        return orAny && counters.Length > 0 ? counters[0].GetComponent<Text>() : null;
     }
 
     public void AddMoney(int amount)
@@ -122,6 +150,15 @@ public class Inventory : MonoBehaviour
         {
             currentMoney = value;
             UpdateMoneyUI();
+        }
+    }
+    public int CurrentGems
+    {
+        get => currentGems;
+        set
+        {
+            currentGems = value;
+            UpdateGemsUI();
         }
     }
     public List<Item> Items => items;
