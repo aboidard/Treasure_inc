@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 242973a4aa7142dfa49380aa7e3b318b, type: 3}
+  m_Name: CharacterPortraits
+  m_EditorClassIdentifier: 
+  portraits:
+  - {fileID: 1565937113, guid: 8de08cb6eacd8d849ab73b754bfc76b1, type: 3}
+  - {fileID: 456732476, guid: 48802e5d5836ed640abd2563acb033a9, type: 3}
+  - {fileID: 217158209, guid: e262c781b709d1b4dba4ab9c5fdfd7d0, type: 3}
+  - {fileID: -1796714413, guid: 83f757c8896790d40977f27fe704995a, type: 3}
+  - {fileID: 1539413307, guid: 9e06d80856cdb8149805f1bef8b9abed, type: 3}
+  - {fileID: -1674881082, guid: a72afc004d83d194d860f6024dd49bf1, type: 3}
+  - {fileID: 1567980126, guid: 92f6c870761d70941b56dbbc5a621c23, type: 3}
+  - {fileID: -1982421420, guid: 967b2bbf814acfa489a7453dbd1e2c98, type: 3}
+  - {fileID: -1549852661, guid: 398c6120b6bf554489ba7b2a04a1834f, type: 3}
+  - {fileID: -788949651, guid: 8dd43f02ca2e13f4088e021d61b7b281, type: 3}
+  - {fileID: -461326254, guid: 8c1c7e8f05c106541b049460cc5144d7, type: 3}
+  - {fileID: 564816012, guid: f50359ae75e83d041a965368c1def8d8, type: 3}
+  - {fileID: -709761870, guid: 0424ed9689a04e54fa714d40649e6755, type: 3}
+  - {fileID: -482715205, guid: fe568946f4cc086469039b259950a592, type: 3}
+  - {fileID: -269830944, guid: b36297f54e769d645b4ae641577c9fc8, type: 3}
+  - {fileID: 2146804465, guid: 2a588a50925e1074599a102ec161af5a, type: 3}
+  - {fileID: -1810571007, guid: 9a82daf647705e14d87d6666cbd8c12a, type: 3}

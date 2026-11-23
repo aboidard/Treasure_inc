@@ -7,9 +7,13 @@ public class SendExpeditionPanel : Panel
 {
     public Location location;
     public Text locationText;
+    /// <summary>The difficulty of the location (its level) as stars, made under locationText.</summary>
+    private RectTransform difficultyStars;
     public Image locationImage;
     public Text costText;
-    public int floor = 10;
+    /// <summary>How many floors an expedition of the story goes down: always the most.</summary>
+    public const int Floors = 10;
+    public int floor = Floors;
     public Slider floorSlider;
     public Text floorText;
     public GameObject locationGridPanel;
@@ -35,11 +39,42 @@ public class SendExpeditionPanel : Panel
 
     public void UpdateUI()
     {
+        // the expeditions of the story always go down every floor: there is no length to choose any more
+        floor = Floors;
+        if (floorSlider != null) floorSlider.gameObject.SetActive(false);
+        if (floorText != null) floorText.gameObject.SetActive(false);
+
         locationText.text = location.name;
         locationImage.sprite = location.graphics;
-        costText.text = "- " + ExpeditionManager.instance.ComputeCost(floor, location);
-        floorSlider.value = floor;
-        floorText.text = floorSlider.value.ToString() + (floorSlider.value != 1 ? " étages" : " étage");
+        if (difficultyStars == null) difficultyStars = CreateDifficultyStars();
+        DifficultyStars.Show(difficultyStars, location.level);
+        int cost = ExpeditionManager.instance.ComputeCost(floor, location);
+        costText.text = cost == 0 ? "Gratuit !" : "- " + cost;
+    }
+
+    /// <summary>The difficulty of the location as stars, under its name.</summary>
+    private RectTransform CreateDifficultyStars()
+    {
+        RectTransform nameRect = locationText.rectTransform;
+        float width = nameRect.anchorMax.x - nameRect.anchorMin.x;
+        float height = nameRect.anchorMax.y - nameRect.anchorMin.y;
+        RectTransform stars = DifficultyStars.Create(locationText.transform.parent,
+            new Vector2(nameRect.anchorMin.x + width * 0.3f, nameRect.anchorMin.y - height * 0.5f),
+            new Vector2(nameRect.anchorMax.x - width * 0.3f, nameRect.anchorMin.y), location.level);
+        return stars;
+    }
+
+    /// <summary>
+    /// The button of the menu: it first asks where to go, the story (the locations of this panel) or the events.
+    /// </summary>
+    public void OpenExpeditionMenu()
+    {
+        if (IsOpen())
+        {
+            Show();
+            return;
+        }
+        ExpeditionMenu.Show(transform, panel.GetComponent<Image>().sprite, Show, EventsWindow.Show);
     }
 
     public void OnClickNextLocation()

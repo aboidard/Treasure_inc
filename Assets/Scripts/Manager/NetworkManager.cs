@@ -27,15 +27,24 @@ public class NetworkManager : MonoBehaviour
     public static bool logedIn = false;
     private Queue<NetworkRequest> queueRequest = new Queue<NetworkRequest>();
     public static String serverVersion;
+    // the last healthcheck: maintenance and oldest client version allowed
+    public static ServerInfos serverInfos;
+    // a maintenance that started while playing, shown by the main menu
+    public static MaintenanceInfos pendingMaintenance;
 
     //api end point
     public static string createUserEndPoint = "/V1/user/create";
     public static string loginEndPoint = "/V1/login/{0}";
     public static string versionEndPoint = "/version";
+    public static string healthcheckEndPoint = "/healthcheck";
     public static string getUserItemsEndPoint = "/V1/user/{0}/items";
     public static string addUserItemsEndPoint = "/V1/user/{0}/items";
     public static string removeUserItemsEndPoint = "/V1/user/{0}/sellitems";
     public static string sendExpeditionEndPoint = "/V1/user/{0}/expedition";
+    /// <summary>The events open now, with what the player may still do there today.</summary>
+    public static string eventsEndPoint = "/V1/user/{0}/events";
+    /// <summary>{1}: the code of the event.</summary>
+    public static string eventExpeditionEndPoint = "/V1/user/{0}/events/{1}/expedition";
     public static string digCaseEndPoint = "/V1/user/{0}/expedition/dig";
     public static string charactersEndPoint = "/V1/user/{0}/characters";
     // {1} is the number of the character
@@ -96,6 +105,7 @@ public class NetworkManager : MonoBehaviour
             else
             {
                 Debug.Log("Received: " + webRequest.downloadHandler.text);
+                if (OnMaintenance(webRequest.responseCode, webRequest.downloadHandler.text)) yield break;
                 onDone(webRequest.responseCode, webRequest.downloadHandler.text);
             }
         }
@@ -124,8 +134,27 @@ public class NetworkManager : MonoBehaviour
             else
             {
                 Debug.Log("Received: " + webRequest.downloadHandler.text);
+                if (OnMaintenance(webRequest.responseCode, webRequest.downloadHandler.text)) yield break;
                 onDone(webRequest.responseCode, webRequest.downloadHandler.text);
             }
         }
+    }
+
+    /// <summary>
+    /// A maintenance started while playing (the API answers 503): back to the main menu, which tells why and keeps the
+    /// player from logging in again until it is over. True when the answer was a maintenance.
+    /// </summary>
+    public static bool OnMaintenance(long code, string text)
+    {
+        MaintenanceInfos maintenance = MaintenanceError.Read(code, text);
+        if (maintenance == null) return false;
+        Debug.Log("Maintenance: " + maintenance.reason);
+        if (pendingMaintenance == null)
+        {
+            pendingMaintenance = maintenance;
+            logedIn = false;
+            SceneManager.LoadScene("MainMenu");
+        }
+        return true;
     }
 }

@@ -18742,8 +18742,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1814739735}
-        m_TargetAssemblyTypeName: Panel, Assembly-CSharp
-        m_MethodName: Show
+        m_TargetAssemblyTypeName: SendExpeditionPanel, Assembly-CSharp
+        m_MethodName: OpenExpeditionMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -20656,7 +20656,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Difficult\xE9"
+  m_Text: "Dur\xE9e"
 --- !u!222 &1878291901
 CanvasRenderer:
   m_ObjectHideFlags: 0
