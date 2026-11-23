@@ -99,6 +99,19 @@ public class LootPanel : MonoBehaviour
                 + (chest.floorsCompleted + 1) + "/" + chest.floors
                 + (this.items.Count == 0 ? " et revient les mains vides..." : " : voici ce qu'il a pu rapporter.");
         }
+        // the chest of an event also gives gems or money
+        if (chest.balance != null)
+        {
+            Inventory.Instance.CurrentMoney = chest.balance.money;
+            Inventory.Instance.CurrentGems = chest.balance.gems;
+        }
+        if (chest.gems > 0 || chest.money > 0)
+        {
+            List<string> won = new List<string>();
+            if (chest.gems > 0) won.Add("<color=#" + ColorUtility.ToHtmlStringRGB(Gems.TextColor) + ">+ " + Gems.Amount(chest.gems) + "</color>");
+            if (chest.money > 0) won.Add("+ " + UIBuilder.Number(chest.money) + " pièces");
+            lootTitle.text += "\n" + string.Join("   ", won);
+        }
         FillPanel();
         ShowXp(chest.xp);
         if (TeamPanel.instance != null) TeamPanel.instance.RenderIfOpen();

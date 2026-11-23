@@ -147,11 +147,71 @@ public class ExpeditionManager : MonoBehaviour
         }
 
         SendExpeditionResponse sent = JsonConvert.DeserializeObject<SendExpeditionResponse>(response);
+        Launch(sent, location, floor, StringGenerator.ExpeditionNameGenerator(), character);
+        onSuccess?.Invoke();
+    }
+
+    /// <summary>
+    /// Asks the API to send a character to an event, for free; the expedition starts here like one of the story, and
+    /// onSuccess is called, once the API accepts it.
+    /// </summary>
+    public void SendEventExpedition(GameEventAPI ev, GameCharacter character, Action onSuccess = null)
+    {
+        if (expeditionList.Count >= 5) throw new TooMuchExpeditionsException();
+
+        StartCoroutine(PostEventExpedition(ev, character, onSuccess));
+    }
+
+    private IEnumerator PostEventExpedition(GameEventAPI ev, GameCharacter character, Action onSuccess)
+    {
+        isSending = true;
+        Loader.instance.SetLoading(true);
+        long status = 0;
+        string response = null;
+        string endPoint = String.Format(NetworkManager.eventExpeditionEndPoint, "{0}", Uri.EscapeDataString(ev.code));
+        yield return NetworkManager.Instance.PostJson(endPoint, new SendEventExpeditionRequest { character = character.num }, (code, text) =>
+        {
+            status = code;
+            response = text;
+        });
+        Loader.instance.SetLoading(false);
+        isSending = false;
+
+        if (status == 429)
+        {
+            MessagePanel.instance.DisplayMessage("Déjà fait !", "Vous avez déjà participé à \"" + ev.name + "\" aujourd'hui : revenez demain !");
+            yield break;
+        }
+        if (status == 404)
+        {
+            MessagePanel.instance.DisplayMessage("Évènement terminé", "\"" + ev.name + "\" n'est plus ouvert.");
+            yield break;
+        }
+        if (status == 409)
+        {
+            MessagePanel.instance.DisplayMessage("En expédition", character.name + " est déjà en expédition : ouvrez son coffre pour le revoir.");
+            CharacterManager.Instance.Refresh(ok => { if (ok) RecoverLostExpeditions(); });
+            yield break;
+        }
+        if (status != 200)
+        {
+            MessagePanel.instance.DisplayMessage("Erreur !", "Impossible de partir à l'évènement, veuillez réessayer ultérieurement !\n" + response);
+            yield break;
+        }
+
+        SendExpeditionResponse sent = JsonConvert.DeserializeObject<SendExpeditionResponse>(response);
+        Launch(sent, EventsWindow.LocationOf(ev), sent.floors > 0 ? sent.floors : ev.floors, ev.name, character);
+        onSuccess?.Invoke();
+    }
+
+    /// <summary>The expedition the API accepted starts its way here.</summary>
+    private void Launch(SendExpeditionResponse sent, Location location, int floor, string name, GameCharacter character)
+    {
         Inventory.Instance.CurrentMoney = sent.money;
         Expedition expedition = new Expedition();
         expedition.expeditionId = sent.expeditionId;
         expedition.itemCount = sent.itemCount;
-        expedition.expeditionName = StringGenerator.ExpeditionNameGenerator();
+        expedition.expeditionName = name;
         expedition.location = location;
         expedition.nbTtotalFloor = floor;
         expedition.character = character;
@@ -171,7 +231,6 @@ public class ExpeditionManager : MonoBehaviour
         SoundManager.Play(Sfx.ExpeditionSend);
 
         Debug.Log("Expedition send " + expedition);
-        onSuccess?.Invoke();
     }
 
     public void ExpeditionReturn(Expedition ex)
@@ -186,9 +245,9 @@ public class ExpeditionManager : MonoBehaviour
     /// <summary>The cost to display before sending: what is really paid is decided by the engine.</summary>
     public int ComputeCost(int time, Location location)
     {
-        int cost = time * 100 * location.level;
-
-        return cost;
+        // the first level is free, so a player who has no money left can always go on
+        if (location.level <= 1) return 0;
+        return time * 100 * location.level;
     }
     public Item GenerateItem()
     {

@@ -23,18 +23,26 @@ public class MainMenu : MonoBehaviour
         //appUpdateManager = new AppUpdateManager();
         //StartCoroutine(CheckForUpdate());
         //NetworkManager.Instance.AddRequest(new NetworkRequest(NetworkRequest.VERSION_SERVER));
-        StartCoroutine(GetServerVersion());
+        StartCoroutine(CheckServer(true));
     }
-    IEnumerator GetServerVersion()
+
+    /// <summary>
+    /// Reads the healthcheck of the API: server version, maintenance and oldest client version allowed.
+    /// The maintenance (or the update to make) is shown at once when showBlock; a maintenance that stopped the game
+    /// while playing is shown in any case.
+    /// </summary>
+    IEnumerator CheckServer(bool showBlock)
     {
         Loader.instance.SetLoading(true);
         LoadAndSaveData.instance.LoadUserKeys();
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(NetworkManager.apiUrl + NetworkManager.versionEndPoint))
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(NetworkManager.apiUrl + NetworkManager.healthcheckEndPoint))
         {
-            webRequest.timeout = 5;
+            // the API waits 2 s at most for the engine
+            webRequest.timeout = 10;
             yield return webRequest.SendWebRequest();
 
-            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError
+                || webRequest.result == UnityWebRequest.Result.ProtocolError)
             {
                 Debug.Log("Error: " + webRequest.error);
                 MessagePanel.instance.DisplayMessage("Erreur !", "Impossible de se connecter, veuillez réessayer ultérieurement !\n" + webRequest.error);
@@ -42,17 +50,78 @@ public class MainMenu : MonoBehaviour
             else
             {
                 Debug.Log("Received: " + webRequest.downloadHandler.text);
-                ServerInfos infos = JsonConvert.DeserializeObject<ServerInfos>(webRequest.downloadHandler.text);
-                NetworkManager.serverVersion = infos.version;
+                try
+                {
+                    ServerInfos infos = ServerInfos.Parse(webRequest.downloadHandler.text);
+                    NetworkManager.serverInfos = infos;
+                    NetworkManager.serverVersion = infos.version;
+                }
+                catch (JsonException e)
+                {
+                    Debug.LogError("Unreadable healthcheck: " + e.Message);
+                }
             }
-            MajInfosUI();
-            Loader.instance.SetLoading(false);
         }
+        // the maintenance that stopped the game is over when the server says so
+        if (NetworkManager.serverInfos != null && !NetworkManager.serverInfos.InMaintenance)
+        {
+            NetworkManager.pendingMaintenance = null;
+        }
+        MajInfosUI();
+        Loader.instance.SetLoading(false);
+        if (showBlock || NetworkManager.pendingMaintenance != null)
+        {
+            ShowBlock();
+        }
+    }
+
+    /// <summary>The maintenance under way, or null: the one told by the healthcheck, or the one that stopped the game.</summary>
+    MaintenanceInfos CurrentMaintenance()
+    {
+        if (NetworkManager.serverInfos != null && NetworkManager.serverInfos.InMaintenance) return NetworkManager.serverInfos.maintenance;
+        return NetworkManager.pendingMaintenance;
+    }
+
+    /// <summary>Tells why the player cannot log in; false when nothing keeps them from it.</summary>
+    bool ShowBlock()
+    {
+        MaintenanceInfos maintenance = CurrentMaintenance();
+        if (maintenance != null)
+        {
+            MessagePanel.instance.DisplayMessage("Maintenance", maintenance.Text);
+            return true;
+        }
+        if (NetworkManager.serverInfos != null && NetworkManager.serverInfos.UpdateRequired)
+        {
+            MessagePanel.instance.DisplayMessage("Mise à jour requise",
+                "Une nouvelle version de Treasure Inc. est disponible : mettez l'application à jour pour continuer à jouer."
+                + "\n\nVotre version : " + Application.version
+                + "\nVersion minimale : " + NetworkManager.serverInfos.minClientVersion);
+            return true;
+        }
+        return false;
     }
 
     public void StartGame()
     {
-        StartCoroutine(Login());
+        StartCoroutine(CheckThenLogin());
+    }
+
+    /// <summary>Reads the healthcheck again (a maintenance may have started or ended), then logs in if nothing blocks.</summary>
+    IEnumerator CheckThenLogin()
+    {
+        if (loggingProcess) yield break;
+        yield return CheckServer(false);
+        if (ShowBlock())
+        {
+            if (CurrentMaintenance() == null && Application.platform == RuntimePlatform.Android)
+            {
+                // the update: the page of the game in the Play Store
+                Application.OpenURL("market://details?id=" + Application.identifier);
+            }
+            yield break;
+        }
+        yield return Login();
     }
 
     IEnumerator Login()
@@ -93,6 +162,18 @@ public class MainMenu : MonoBehaviour
                 {
                     Debug.Log("LoginException: " + webRequest.error);
                     throw new LoginException(webRequest.error);
+                }
+                else if (MaintenanceError.Read(webRequest.responseCode, webRequest.downloadHandler.text) is MaintenanceInfos maintenance)
+                {
+                    // started since the healthcheck
+                    NetworkManager.pendingMaintenance = maintenance;
+                    MajInfosUI();
+                    MessagePanel.instance.DisplayMessage("Maintenance", maintenance.Text);
+                }
+                else if (webRequest.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.Log("LoginException: HTTP " + webRequest.responseCode + " " + webRequest.downloadHandler.text);
+                    throw new LoginException("HTTP " + webRequest.responseCode);
                 }
                 else
                 {
@@ -147,6 +228,8 @@ public class MainMenu : MonoBehaviour
                 Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
 
                 List<ItemAPI> itemsFromJSON = JsonConvert.DeserializeObject<List<ItemAPI>>(webRequest.downloadHandler.text);
+                // a login after a maintenance: the items of the previous one are still there
+                Inventory.Instance.ClearItems();
                 foreach (ItemAPI it in itemsFromJSON ?? Enumerable.Empty<ItemAPI>())
                 {
                     Item myItem = Item.CreateItemAPI(it);
@@ -191,6 +274,23 @@ public class MainMenu : MonoBehaviour
         if (null != NetworkManager.serverVersion)
         {
             infos.text += "\nServeur : " + NetworkManager.serverVersion;
+        }
+        // stays on screen when the message is closed
+        MaintenanceInfos maintenance = CurrentMaintenance();
+        if (maintenance != null)
+        {
+            string reason = string.IsNullOrEmpty(maintenance.reason) ? "en cours" : maintenance.reason;
+            if (reason.Length > 120) reason = reason.Substring(0, 117) + "...";
+            infos.text += "\n\nMaintenance : " + reason;
+            DateTime? end = maintenance.LocalEnd;
+            if (end.HasValue)
+            {
+                infos.text += "\nFin prévue le " + end.Value.ToString("dd/MM/yyyy 'à' HH:mm", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+            }
+        }
+        else if (NetworkManager.serverInfos != null && NetworkManager.serverInfos.UpdateRequired)
+        {
+            infos.text += "\n\nMise à jour requise (version minimale " + NetworkManager.serverInfos.minClientVersion + ")";
         }
     }
 

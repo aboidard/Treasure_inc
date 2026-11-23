@@ -101,6 +101,12 @@ public class Inventory : MonoBehaviour
         this.items.Add(item);
     }
 
+    /// <summary>Forgets the items before they are loaded again (a new login, e.g. after a maintenance).</summary>
+    public void ClearItems()
+    {
+        this.items.Clear();
+    }
+
     public void RemoveItemsAndPersist(List<Item> itemsToRemove)
     {
         List<ItemAPI> listItemApi = new List<ItemAPI>();

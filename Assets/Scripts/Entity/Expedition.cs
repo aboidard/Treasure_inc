@@ -95,6 +95,58 @@ public class SendExpeditionResponse
     public int xp { get; set; }
     /// <summary>What happens to the character on the way; null from a server older than the fights.</summary>
     public ExpeditionRunAPI run { get; set; }
+    /// <summary>How many floors the expedition goes down; 0 from a server older than the events.</summary>
+    public int floors { get; set; }
+}
+
+[System.Serializable]
+public class SendEventExpeditionRequest
+{
+    /// <summary>Number of the character leading the expedition.</summary>
+    public int character { get; set; }
+}
+
+/// <summary>What the chest of an event gives, besides what an expedition of the story brings back.</summary>
+[System.Serializable]
+public class GameEventRewardsAPI
+{
+    public int gems { get; set; }
+    public int money { get; set; }
+    public int items { get; set; }
+}
+
+/// <summary>An event open now, as the API describes it to a player.</summary>
+[System.Serializable]
+public class GameEventAPI
+{
+    public string code { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    /// <summary>A sprite of Resources/Events, or the URL of a picture.</summary>
+    public string image { get; set; }
+    /// <summary>The difficulty, from 1 (easy) to 3 (hard).</summary>
+    public int level { get; set; }
+    public int floors { get; set; }
+    public GameEventRewardsAPI rewards { get; set; }
+    public int maxPerDay { get; set; }
+    public int runsToday { get; set; }
+    /// <summary>How many expeditions the player may still send there today; null without a daily limit.</summary>
+    public int? remainingToday { get; set; }
+    /// <summary>ISO-8601; null when the event does not end.</summary>
+    public string end { get; set; }
+}
+
+[System.Serializable]
+public class GameEventsAPI
+{
+    public List<GameEventAPI> events { get; set; }
+}
+
+[System.Serializable]
+public class BalanceAPI
+{
+    public int money { get; set; }
+    public int gems { get; set; }
 }
 
 /// <summary>
@@ -209,4 +261,9 @@ public class OpenChestResponse
     public int floors { get; set; }
     /// <summary>How many of them the character finished: fewer than floors when it died on the way.</summary>
     public int floorsCompleted { get; set; }
+    /// <summary>The gems and the money of an event's chest (0 for the story).</summary>
+    public int gems { get; set; }
+    public int money { get; set; }
+    /// <summary>The balances afterwards; null from a server older than the events.</summary>
+    public BalanceAPI balance { get; set; }
 }
