@@ -3,56 +3,80 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// The small window opened by the expedition button of the menu: where to go, the story (the locations, always there)
-/// or the events (limited in time or special, given by the server). Built by code, like CharacterChooser.
+/// The small menu opened by the expedition button of the main menu: the story (the locations, always there) or the
+/// events (limited in time or special, given by the server). Same as CrewMenu: it is built by code above the button,
+/// on top of the canvas; a click anywhere else closes it.
 /// </summary>
 public class ExpeditionMenu : MonoBehaviour
 {
     private static ExpeditionMenu instance;
-    private static readonly Vector2 windowSize = new Vector2(760f, 560f);
 
+    private static readonly Vector2 boxSize = new Vector2(460f, 290f);
+    private const float margin = 16f;
+
+    private RectTransform box;
     private Action onStory;
     private Action onEvents;
 
-    /// <param name="owner">an element of the canvas the window opens in</param>
-    /// <param name="background">sprite of the window, e.g. the one of a panel</param>
-    public static void Show(Transform owner, Sprite background, Action onStory, Action onEvents)
+    /// <summary>Opens the menu above the button, or closes it when it is open.</summary>
+    public static void Toggle(RectTransform button, Action onStory, Action onEvents)
     {
+        if (instance != null && instance.gameObject.activeSelf)
+        {
+            instance.Close();
+            return;
+        }
         if (instance == null)
         {
-            Canvas canvas = owner.GetComponentInParent<Canvas>().rootCanvas;
+            Canvas canvas = button.GetComponentInParent<Canvas>().rootCanvas;
             RectTransform root = UIBuilder.Child("ExpeditionMenu", canvas.transform, Vector2.zero, Vector2.one);
             instance = root.gameObject.AddComponent<ExpeditionMenu>();
-            instance.Build(background);
+            instance.Build();
         }
         instance.onStory = onStory;
         instance.onEvents = onEvents;
         instance.transform.SetAsLastSibling();
         instance.gameObject.SetActive(true);
-        SoundManager.Play(Sfx.PanelOpen);
+        instance.Place(button);
+        SoundManager.Play(Sfx.PanelOpen, 1.3f);
     }
 
-    private void Build(Sprite background)
+    private void Build()
     {
-        // a click outside the window closes it
-        Image blocker = UIBuilder.Image(GetComponent<RectTransform>(), null, new Color(0f, 0f, 0f, 0.5f), true);
-        Button close = gameObject.AddComponent<Button>();
-        close.targetGraphic = blocker;
-        close.transition = Selectable.Transition.None;
-        close.onClick.AddListener(Close);
+        // invisible, but it takes the clicks made outside of the menu
+        Image blocker = UIBuilder.Image(GetComponent<RectTransform>(), null, new Color(0f, 0f, 0f, 0f), true);
+        Button outside = gameObject.AddComponent<Button>();
+        outside.targetGraphic = blocker;
+        outside.transition = Selectable.Transition.None;
+        outside.onClick.AddListener(Close);
 
-        RectTransform window = UIBuilder.Child("Window", transform, new Vector2(0.5f, 0.5f), Vector2.zero, windowSize);
-        Image windowImage = UIBuilder.Image(window, background, Color.white, true);
-        windowImage.type = Image.Type.Sliced;
-        // a click on the window itself must not reach the blocker behind it
-        window.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
+        box = UIBuilder.Child("Box", transform, new Vector2(0.5f, 0.5f), Vector2.zero, boxSize);
+        Image frame = UIBuilder.Image(box, UIBuilder.ModelPanel.sprite, Color.white, true);
+        frame.type = UIBuilder.ModelPanel.type;
 
-        UIBuilder.Text(UIBuilder.Child("Title", window, new Vector2(0.06f, 0.74f), new Vector2(0.94f, 0.93f)),
-            UIBuilder.ModelText, "Expéditions", 64, TextAnchor.MiddleCenter);
-        UIBuilder.Button(UIBuilder.Child("Story", window, new Vector2(0.12f, 0.42f), new Vector2(0.88f, 0.66f)),
-            "Histoire", 54, () => Choose(onStory));
-        UIBuilder.Button(UIBuilder.Child("Events", window, new Vector2(0.12f, 0.12f), new Vector2(0.88f, 0.36f)),
-            "Évènements", 54, () => Choose(onEvents));
+        UIBuilder.Button(UIBuilder.Child("Story", box, new Vector2(0.08f, 0.54f), new Vector2(0.92f, 0.9f)),
+            "Histoire", 52, () => Choose(onStory));
+        UIBuilder.Button(UIBuilder.Child("Events", box, new Vector2(0.08f, 0.1f), new Vector2(0.92f, 0.46f)),
+            "Évènements", 52, () => Choose(onEvents));
+    }
+
+    /// <summary>Just above the button, without leaving the screen.</summary>
+    private void Place(RectTransform button)
+    {
+        RectTransform root = GetComponent<RectTransform>();
+        Vector3[] corners = new Vector3[4];
+        button.GetWorldCorners(corners);
+        Vector2 topLeft = root.InverseTransformPoint(corners[1]);
+        Vector2 topRight = root.InverseTransformPoint(corners[2]);
+        Rect area = root.rect;
+
+        float x = (topLeft.x + topRight.x) / 2f;
+        float y = topLeft.y + margin + boxSize.y / 2f;
+        float xLimit = Mathf.Max(0f, area.width / 2f - boxSize.x / 2f - margin);
+        float yLimit = Mathf.Max(0f, area.height / 2f - boxSize.y / 2f - margin);
+        x = Mathf.Clamp(x, area.center.x - xLimit, area.center.x + xLimit);
+        y = Mathf.Clamp(y, area.center.y - yLimit, area.center.y + yLimit);
+        box.localPosition = new Vector3(x, y, 0f);
     }
 
     private void Choose(Action action)
@@ -64,6 +88,5 @@ public class ExpeditionMenu : MonoBehaviour
     public void Close()
     {
         gameObject.SetActive(false);
-        SoundManager.Play(Sfx.PanelClose);
     }
 }

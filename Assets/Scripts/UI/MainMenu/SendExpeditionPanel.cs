@@ -58,14 +58,17 @@ public class SendExpeditionPanel : Panel
         RectTransform nameRect = locationText.rectTransform;
         float width = nameRect.anchorMax.x - nameRect.anchorMin.x;
         float height = nameRect.anchorMax.y - nameRect.anchorMin.y;
+        // slightly raised, so that they sit right under the text of the name rather than under its box
+        float raise = height * 1.5f;
         RectTransform stars = DifficultyStars.Create(locationText.transform.parent,
-            new Vector2(nameRect.anchorMin.x + width * 0.3f, nameRect.anchorMin.y - height * 0.5f),
-            new Vector2(nameRect.anchorMax.x - width * 0.3f, nameRect.anchorMin.y), location.level);
+            new Vector2(nameRect.anchorMin.x + width * 0.3f, nameRect.anchorMin.y - height * 0.5f + raise),
+            new Vector2(nameRect.anchorMax.x - width * 0.3f, nameRect.anchorMin.y + raise), location.level);
         return stars;
     }
 
     /// <summary>
-    /// The button of the menu: it first asks where to go, the story (the locations of this panel) or the events.
+    /// The button of the menu: it first asks where to go, the story (the locations of this panel) or the events,
+    /// in a small menu above the button (like the one of the crew).
     /// </summary>
     public void OpenExpeditionMenu()
     {
@@ -74,7 +77,30 @@ public class SendExpeditionPanel : Panel
             Show();
             return;
         }
-        ExpeditionMenu.Show(transform, panel.GetComponent<Image>().sprite, Show, EventsWindow.Show);
+        RectTransform anchor = FindMenuButton();
+        if (anchor == null)
+        {
+            Show();
+            return;
+        }
+        ExpeditionMenu.Toggle(anchor, Show, EventsWindow.Show);
+    }
+
+    /// <summary>The button of the main menu bound to OpenExpeditionMenu in the scene: the menu opens above it.</summary>
+    private RectTransform FindMenuButton()
+    {
+        foreach (Button button in FindObjectsOfType<Button>(true))
+        {
+            Button.ButtonClickedEvent click = button.onClick;
+            for (int i = 0; i < click.GetPersistentEventCount(); i++)
+            {
+                if (click.GetPersistentTarget(i) == this && click.GetPersistentMethodName(i) == "OpenExpeditionMenu")
+                {
+                    return button.GetComponent<RectTransform>();
+                }
+            }
+        }
+        return null;
     }
 
     public void OnClickNextLocation()
